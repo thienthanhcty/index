@@ -787,12 +787,16 @@
             }
 
             // ========== LƯU DỮ LIỆU LÊN NPOINT.IO ==========
-            async function saveDataToCloud() {
-                if (!currentUser) {
-                    showToast('Vui lòng đăng nhập trước!', 'error');
-                    return;
-                }
+            let isSyncing = false;
+            let dataChanged = false;
+
+            async function syncDataToCloud() {
+                if (!currentUser) return false;
+                if (isSyncing) return false;
+                if (!dataChanged) return true;
+
                 try {
+                    isSyncing = true;
                     updateSyncStatus('syncing', '🔄 Đang lưu...');
                     const allData = {
                         users: users,
@@ -811,21 +815,21 @@
                     });
 
                     if (response.ok) {
+                        dataChanged = false;
                         updateSyncStatus('synced', '✅ Đã lưu lên cloud');
-                        showToast('✅ Đã lưu dữ liệu lên npoint.io thành công!', 'success');
                         return true;
                     } else {
                         const errorText = await response.text();
                         console.error('Lỗi lưu:', errorText);
                         updateSyncStatus('error', '❌ Lỗi lưu');
-                        showToast('❌ Lỗi lưu dữ liệu: ' + errorText, 'error');
                         return false;
                     }
                 } catch (error) {
                     console.error('Lỗi lưu:', error);
                     updateSyncStatus('error', '❌ Không kết nối');
-                    showToast('❌ Không thể kết nối đến server!', 'error');
                     return false;
+                } finally {
+                    isSyncing = false;
                 }
             }
 
@@ -873,6 +877,25 @@
                     return false;
                 }
             }
+
+            // ========== ĐÁNH DẤU CÓ THAY ĐỔI ==========
+            function markDataChanged() {
+                dataChanged = true;
+                // Chờ 2 giây sau lần thay đổi cuối cùng mới đồng bộ
+                clearTimeout(window._syncTimeout);
+                window._syncTimeout = setTimeout(() => {
+                    syncDataToCloud();
+                }, 2000);
+            }
+
+            // Ghi đè saveAllData để đánh dấu thay đổi
+            const originalSaveAllData = saveAllData;
+            saveAllData = function() {
+                originalSaveAllData.apply(this, arguments);
+                if (currentUser) {
+                    markDataChanged();
+                }
+            };
 
             // ========== STATUS MAP ==========
             const STATUS_MAP = {
@@ -944,14 +967,6 @@
                 toast.className = 'toast ' + type;
                 setTimeout(() => toast.classList.add('show'), 50);
                 setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-
-            // ========== SAVE ==========
-            function saveAllData() {
-                saveDataLocal(STORAGE_KEYS.USERS, users);
-                saveDataLocal(STORAGE_KEYS.PRODUCTS, products);
-                saveDataLocal(STORAGE_KEYS.CUSTOMERS, customers);
-                saveDataLocal(STORAGE_KEYS.ORDERS, orders);
             }
 
             // ========== CUSTOMER FUNCTIONS ==========
@@ -2153,14 +2168,14 @@
                 }
 
                 showToast(`Chào mừng ${user.name}!`, 'success');
-                startAutoSync();
+                
+                // Tải dữ liệu từ cloud khi đăng nhập
+                setTimeout(() => {
+                    loadDataFromCloud();
+                }, 500);
             }
 
             function logout() {
-                if (syncInterval) {
-                    clearInterval(syncInterval);
-                    syncInterval = null;
-                }
                 currentUser = null;
                 loginPage.classList.remove('hidden');
                 appContainer.classList.remove('active');
@@ -2187,28 +2202,6 @@
                 userNameDisplay.textContent = user.username + (user.role === 'admin' ? ' (admin)' : '');
             }
 
-            // ========== AUTO SYNC - 1 GIÂY ==========
-            let syncInterval = null;
-
-            function startAutoSync() {
-                if (syncInterval) clearInterval(syncInterval);
-
-                // Tải dữ liệu khi đăng nhập
-                setTimeout(async () => {
-                    await loadDataFromCloud();
-                }, 500);
-
-                // Đồng bộ mỗi 1 GIÂY
-                syncInterval = setInterval(async () => {
-                    if (currentUser) {
-                        await saveDataToCloud();
-                    }
-                }, 1000); // 1 GIÂY
-
-                console.log('🔄 Đồng bộ tự động mỗi 1 giây');
-                console.log('📊 Không giới hạn request (npoint.io)');
-            }
-
             // ========== SỰ KIỆN ==========
             loginBtn.addEventListener('click', login);
             document.getElementById('loginForm').addEventListener('keypress', function(e) {
@@ -2218,7 +2211,10 @@
 
             logoutBtn.addEventListener('click', logout);
             changePasswordBtn.addEventListener('click', openPasswordModal);
-            saveDataBtn.addEventListener('click', saveDataToCloud);
+            saveDataBtn.addEventListener('click', async function() {
+                await syncDataToCloud();
+                showToast('Đã lưu dữ liệu lên cloud!', 'success');
+            });
             loadDataBtn.addEventListener('click', loadDataFromCloud);
 
             closePasswordModalBtn.addEventListener('click', closePasswordModal);
@@ -2297,7 +2293,7 @@
 
             console.log('🛒 Hệ thống quản lý bán hàng');
             console.log('☁️ Dữ liệu được đồng bộ với npoint.io');
-            console.log('🔄 Đồng bộ tự động mỗi 1 giây');
+            console.log('🔄 Chỉ đồng bộ khi có thay đổi (sau 2 giây)');
             console.log('📊 Không giới hạn request');
             console.log('👤 Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công');
             console.log('👑 Admin có thể sửa/xóa tất cả khách hàng');
