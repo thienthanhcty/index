@@ -94,6 +94,17 @@
         .customer-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .customer-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
         .customer-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
+        
+        /* ===== BỘ LỌC KHÁCH HÀNG ===== */
+        .customer-filter-area { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; background: #f1f5f9; padding: 0.6rem 1.2rem; border-radius: 2rem; border: 1px solid #e2e8f0; }
+        .customer-filter-area label { font-weight: 600; font-size: 0.8rem; color: #1f2a41; display: flex; align-items: center; gap: 0.3rem; }
+        .customer-filter-area label i { color: #2563eb; }
+        .customer-filter-area select { padding: 0.4rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 2rem; font-size: 0.8rem; background: white; cursor: pointer; min-width: 160px; }
+        .customer-filter-area select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
+        .customer-filter-area .filter-clear-btn { background: none; border: 1px solid #e2e8f0; padding: 0.3rem 1rem; border-radius: 2rem; font-size: 0.75rem; color: #6b7b93; cursor: pointer; transition: 0.2s; }
+        .customer-filter-area .filter-clear-btn:hover { background: #fee2e2; border-color: #dc2626; color: #dc2626; }
+        .customer-filter-area .filter-stats { font-size: 0.7rem; color: #6b7b93; margin-left: auto; }
+        
         .customer-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
         .customer-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; }
         .customer-table-container thead { background: #eef2ff; }
@@ -109,6 +120,22 @@
         .customer-table-container .action-buttons .btn-delete-customer:hover { background: #fee2e2; }
         .customer-table-container .note-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: #4b5a6f; }
         .customer-table-container .note-time-cell { font-size: 0.7rem; color: #6b7b93; white-space: nowrap; }
+        
+        /* ===== PHÂN TRANG ===== */
+        .pagination-wrapper { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 0.8rem 0 0.2rem 0; border-top: 1px solid #e9edf4; margin-top: 0.8rem; }
+        .pagination-info { font-size: 0.8rem; color: #4b5a6f; }
+        .pagination-info strong { color: #0b1b33; }
+        .pagination-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .pagination-controls select { padding: 0.3rem 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 2rem; font-size: 0.8rem; background: white; cursor: pointer; }
+        .pagination-controls select:focus { outline: none; border-color: #2563eb; }
+        .pagination-btn { background: white; border: 1.5px solid #e2e8f0; padding: 0.3rem 0.9rem; border-radius: 2rem; font-size: 0.8rem; color: #1f2a41; cursor: pointer; transition: 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background: #eef2ff; border-color: #2563eb; color: #2563eb; }
+        .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-btn.active { background: #2563eb; border-color: #2563eb; color: white; }
+        .pagination-btn.active:hover { background: #1d4ed8; }
+        .pagination-ellipsis { padding: 0 0.3rem; color: #6b7b93; font-size: 0.8rem; }
+        .page-size-label { font-size: 0.8rem; color: #4b5a6f; margin-right: 0.2rem; }
+        
         .product-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .product-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
         .product-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
@@ -216,7 +243,7 @@
         .npoint-config .bucket-id-display .copy-btn { background: none; border: none; color: #065f46; cursor: pointer; padding: 0 0.3rem; }
         .npoint-config .bucket-id-display .copy-btn:hover { color: #1e40af; }
         .npoint-config.staff-hidden { display: none !important; }
-        @media (max-width: 768px) { .app-container { padding: 1rem; } .modal-box { padding: 1.5rem; } .staff-grid { grid-template-columns: 1fr 1fr; } .admin-tools { flex-direction: column; } .admin-tools input { width: 100%; } .user-panel { gap: 0.8rem; } .filter-area { flex-direction: column; width: 100%; } .filter-area select { width: 100%; } table { min-width: 1400px; } .customer-table-container table { min-width: 900px; } .product-table-container table { min-width: 600px; } .bulk-area .bulk-row { flex-direction: column; } .bulk-area textarea { width: 100%; } .bulk-area .bulk-options { width: 100%; } .tabs { flex-direction: column; } .tab-btn { text-align: center; } .customer-search-area { flex-wrap: wrap; } .npoint-config { flex-direction: column; align-items: stretch; } }
+        @media (max-width: 768px) { .app-container { padding: 1rem; } .modal-box { padding: 1.5rem; } .staff-grid { grid-template-columns: 1fr 1fr; } .admin-tools { flex-direction: column; } .admin-tools input { width: 100%; } .user-panel { gap: 0.8rem; } .filter-area { flex-direction: column; width: 100%; } .filter-area select { width: 100%; } table { min-width: 1400px; } .customer-table-container table { min-width: 900px; } .product-table-container table { min-width: 600px; } .bulk-area .bulk-row { flex-direction: column; } .bulk-area textarea { width: 100%; } .bulk-area .bulk-options { width: 100%; } .tabs { flex-direction: column; } .tab-btn { text-align: center; } .customer-search-area { flex-wrap: wrap; } .npoint-config { flex-direction: column; align-items: stretch; } .pagination-wrapper { flex-direction: column; align-items: stretch; } .pagination-controls { justify-content: center; } .customer-filter-area { flex-direction: column; align-items: stretch; } .customer-filter-area .filter-stats { margin-left: 0; text-align: center; } }
     </style>
 </head>
 <body>
@@ -526,6 +553,17 @@
                     <button class="add-customer-btn" id="openCustomerModal"><i class="fas fa-plus"></i> Thêm khách hàng</button>
                 </div>
 
+                <!-- ===== BỘ LỌC NHÂN VIÊN ===== -->
+                <div class="customer-filter-area" id="customerFilterArea">
+                    <label><i class="fas fa-user-tie"></i> Lọc theo nhân viên:</label>
+                    <select id="staffCustomerFilter">
+                        <option value="all">📋 Tất cả nhân viên</option>
+                        <!-- render từ js -->
+                    </select>
+                    <button class="filter-clear-btn" id="clearCustomerFilter"><i class="fas fa-undo"></i> Bỏ lọc</button>
+                    <span class="filter-stats" id="filterStats"></span>
+                </div>
+
                 <div class="customer-table-container">
                     <table>
                         <thead>
@@ -544,6 +582,26 @@
                             <!-- render từ js -->
                         </tbody>
                     </table>
+                    <!-- PHÂN TRANG -->
+                    <div class="pagination-wrapper" id="customerPagination">
+                        <div class="pagination-info">
+                            Hiển thị <strong id="paginationFrom">0</strong> - <strong id="paginationTo">0</strong> trên <strong id="paginationTotal">0</strong> khách hàng
+                        </div>
+                        <div class="pagination-controls">
+                            <span class="page-size-label">Hiển thị:</span>
+                            <select id="pageSizeSelect">
+                                <option value="30">30</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                                <option value="500">500</option>
+                                <option value="1000">1000</option>
+                            </select>
+                            <button class="pagination-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+                            <span id="pageButtons"></span>
+                            <button class="pagination-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
                 </div>
                 <div class="format-hint" style="margin-top:0.8rem;">
                     <i class="fas fa-info-circle"></i> Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công
@@ -730,6 +788,12 @@
             let isSyncing = false;
             let syncInterval = null;
 
+            // ===== PAGINATION STATE =====
+            let currentPage = 1;
+            let pageSize = 50;
+            let staffFilterValue = 'all'; // 'all' hoặc id nhân viên
+            let filteredCustomers = [];
+
             // ========== DOM ==========
             const loginPage = document.getElementById('loginPage');
             const appContainer = document.getElementById('appContainer');
@@ -777,6 +841,11 @@
             const customerNoteInput = document.getElementById('customerNoteInput');
             const customerStaffId = document.getElementById('customerStaffId');
             const customerStaffGroup = document.getElementById('customerStaffGroup');
+
+            // Customer filter
+            const staffCustomerFilter = document.getElementById('staffCustomerFilter');
+            const clearCustomerFilter = document.getElementById('clearCustomerFilter');
+            const filterStats = document.getElementById('filterStats');
 
             // Bulk Add
             const bulkCustomerInput = document.getElementById('bulkCustomerInput');
@@ -839,6 +908,15 @@
             const importFileInput = document.getElementById('importFileInput');
 
             const toast = document.getElementById('toast');
+
+            // Pagination DOM
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+            const pageButtons = document.getElementById('pageButtons');
+            const paginationFrom = document.getElementById('paginationFrom');
+            const paginationTo = document.getElementById('paginationTo');
+            const paginationTotal = document.getElementById('paginationTotal');
 
             // Tabs
             const tabBtns = document.querySelectorAll('.tab-btn');
@@ -1186,28 +1264,139 @@
                 }
             }
 
-            // ========== CUSTOMER FUNCTIONS ==========
-            function renderCustomers() {
-                if (!customerTableBody) return;
+            // ========== RENDER STAFF FILTER FOR CUSTOMERS ==========
+            function renderStaffCustomerFilter() {
+                const staffs = getStaffUsers();
+                const currentValue = staffCustomerFilter.value;
+                staffCustomerFilter.innerHTML = '<option value="all">📋 Tất cả nhân viên</option>';
+                staffs.forEach(s => {
+                    const count = customers.filter(c => c.staffId === s.id).length;
+                    const option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = `👤 ${s.name} (${count} KH)`;
+                    staffCustomerFilter.appendChild(option);
+                });
+                if (currentValue) staffCustomerFilter.value = currentValue;
+                updateFilterStats();
+            }
 
-                let filteredCustomers = [...customers];
-                if (isStaff()) {
-                    filteredCustomers = filteredCustomers.filter(c => c.staffId === currentUser.id);
+            function updateFilterStats() {
+                const total = filteredCustomers.length;
+                const all = customers.length;
+                if (staffFilterValue === 'all') {
+                    filterStats.textContent = `📊 Tổng: ${all} khách hàng`;
+                } else {
+                    const staffName = getStaffName(parseInt(staffFilterValue));
+                    filterStats.textContent = `📊 ${total} khách hàng của ${staffName}`;
                 }
+            }
 
+            // ========== PAGINATION FUNCTIONS ==========
+            function getFilteredCustomers() {
+                let result = [...customers];
+                
+                // Lọc theo nhân viên (chỉ Admin mới có filter này)
+                if (isAdmin() && staffFilterValue !== 'all') {
+                    result = result.filter(c => c.staffId === parseInt(staffFilterValue));
+                }
+                
+                // Staff chỉ thấy khách hàng của mình
+                if (isStaff()) {
+                    result = result.filter(c => c.staffId === currentUser.id);
+                }
+                
+                return result;
+            }
+
+            function renderPagination() {
+                const total = filteredCustomers.length;
+                const totalPages = Math.ceil(total / pageSize) || 1;
+                
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+                
+                const from = (currentPage - 1) * pageSize + 1;
+                const to = Math.min(currentPage * pageSize, total);
+                
+                paginationFrom.textContent = total > 0 ? from : 0;
+                paginationTo.textContent = total > 0 ? to : 0;
+                paginationTotal.textContent = total;
+                
+                // Previous/Next buttons
+                prevPageBtn.disabled = currentPage <= 1;
+                nextPageBtn.disabled = currentPage >= totalPages;
+                
+                // Page buttons
+                let html = '';
+                const maxVisible = 7;
+                let startPage = 1;
+                let endPage = totalPages;
+                
+                if (totalPages > maxVisible) {
+                    const half = Math.floor(maxVisible / 2);
+                    if (currentPage <= half + 1) {
+                        endPage = maxVisible;
+                    } else if (currentPage >= totalPages - half) {
+                        startPage = totalPages - maxVisible + 1;
+                    } else {
+                        startPage = currentPage - half;
+                        endPage = currentPage + half;
+                    }
+                }
+                
+                if (startPage > 1) {
+                    html += `<button class="pagination-btn" data-page="1">1</button>`;
+                    if (startPage > 2) {
+                        html += `<span class="pagination-ellipsis">…</span>`;
+                    }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    const activeClass = i === currentPage ? ' active' : '';
+                    html += `<button class="pagination-btn${activeClass}" data-page="${i}">${i}</button>`;
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        html += `<span class="pagination-ellipsis">…</span>`;
+                    }
+                    html += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
+                }
+                
+                pageButtons.innerHTML = html;
+                
+                // Event listeners for page buttons
+                document.querySelectorAll('#pageButtons .pagination-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const page = parseInt(this.dataset.page);
+                        if (page && page !== currentPage) {
+                            currentPage = page;
+                            renderCustomerPage();
+                        }
+                    });
+                });
+            }
+
+            function renderCustomerPage() {
+                const start = (currentPage - 1) * pageSize;
+                const end = Math.min(start + pageSize, filteredCustomers.length);
+                const pageData = filteredCustomers.slice(start, end);
+                
                 customerTableBody.innerHTML = '';
-                if (filteredCustomers.length === 0) {
+                if (pageData.length === 0) {
                     const colSpan = isAdmin() ? 8 : 7;
                     customerTableBody.innerHTML =
-                        `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Chưa có khách hàng nào</td></tr>`;
+                        `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Không có khách hàng nào</td></tr>`;
                     customerCount.textContent = '0';
+                    renderPagination();
                     return;
                 }
                 customerCount.textContent = filteredCustomers.length;
 
-                filteredCustomers.forEach((c, index) => {
+                pageData.forEach((c, index) => {
                     const staffName = getStaffName(c.staffId);
                     const tr = document.createElement('tr');
+                    const globalIndex = start + index + 1;
 
                     let actionsHtml = '';
                     if (isAdmin()) {
@@ -1233,7 +1422,7 @@
                     const noteDisplay = c.note || '';
 
                     tr.innerHTML = `
-                            <td style="text-align:center;">${index + 1}</td>
+                            <td style="text-align:center;">${globalIndex}</td>
                             <td><strong>${c.name}</strong></td>
                             <td>${c.phone}</td>
                             <td style="max-width:200px;word-break:break-word;">${c.address}</td>
@@ -1245,6 +1434,7 @@
                     customerTableBody.appendChild(tr);
                 });
 
+                // Attach events
                 document.querySelectorAll('.btn-edit-customer').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = parseInt(this.dataset.id);
@@ -1260,6 +1450,16 @@
                         });
                     });
                 }
+
+                renderPagination();
+                updateFilterStats();
+            }
+
+            // ========== CUSTOMER FUNCTIONS ==========
+            function renderCustomers() {
+                filteredCustomers = getFilteredCustomers();
+                currentPage = 1;
+                renderCustomerPage();
             }
 
             function addCustomer(name, phone, address, note, staffId) {
@@ -1283,6 +1483,7 @@
                 customers.push(newCustomer);
                 saveAllData();
                 renderCustomers();
+                renderStaffCustomerFilter();
                 renderCustomerSelect('');
                 showToast(`Đã thêm khách hàng "${name}"`, 'success');
                 return true;
@@ -1321,6 +1522,7 @@
 
                 saveAllData();
                 renderCustomers();
+                renderStaffCustomerFilter();
                 renderCustomerSelect('');
                 showToast(`Đã cập nhật khách hàng "${name}"`, 'success');
                 return true;
@@ -1337,6 +1539,7 @@
                 customers = customers.filter(c => c.id !== id);
                 saveAllData();
                 renderCustomers();
+                renderStaffCustomerFilter();
                 renderCustomerSelect('');
                 showToast(`Đã xóa khách hàng "${customer.name}"`, 'success');
             }
@@ -1395,6 +1598,7 @@
                 if (added > 0) {
                     saveAllData();
                     renderCustomers();
+                    renderStaffCustomerFilter();
                     renderCustomerSelect('');
                     bulkCustomerInput.value = '';
                     showToast(`✅ Đã phân phối ${added} khách hàng cho Sale. ${errors} dòng bị bỏ qua.`, 'success');
@@ -1405,11 +1609,11 @@
 
             // ========== CUSTOMER SELECT WITH SEARCH ==========
             function renderCustomerSelect(searchTerm = '') {
-                let filteredCustomers = [...customers];
+                let filtered = [...customers];
 
                 if (searchTerm && searchTerm.trim()) {
                     const term = searchTerm.trim().toLowerCase();
-                    filteredCustomers = filteredCustomers.filter(c =>
+                    filtered = filtered.filter(c =>
                         c.name.toLowerCase().includes(term) ||
                         c.phone.includes(term)
                     );
@@ -1417,7 +1621,7 @@
 
                 if (searchResultCount) {
                     if (searchTerm && searchTerm.trim()) {
-                        searchResultCount.textContent = `${filteredCustomers.length} kết quả`;
+                        searchResultCount.textContent = `${filtered.length} kết quả`;
                         searchResultCount.style.display = 'inline';
                     } else {
                         searchResultCount.textContent = `${customers.length} khách hàng`;
@@ -1436,14 +1640,14 @@
                 const currentValue = orderCustomerSelect.value;
                 orderCustomerSelect.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
 
-                if (filteredCustomers.length === 0) {
+                if (filtered.length === 0) {
                     const option = document.createElement('option');
                     option.value = '';
                     option.textContent = '🔍 Không tìm thấy khách hàng';
                     option.disabled = true;
                     orderCustomerSelect.appendChild(option);
                 } else {
-                    filteredCustomers.forEach(c => {
+                    filtered.forEach(c => {
                         const option = document.createElement('option');
                         option.value = c.id;
                         option.dataset.phone = c.phone;
@@ -1453,7 +1657,7 @@
                     });
                 }
 
-                if (currentValue && filteredCustomers.some(c => c.id === parseInt(currentValue))) {
+                if (currentValue && filtered.some(c => c.id === parseInt(currentValue))) {
                     orderCustomerSelect.value = currentValue;
                 }
             }
@@ -2212,6 +2416,7 @@
                 saveAllData();
                 renderStaff();
                 renderStaffFilter();
+                renderStaffCustomerFilter();
                 renderStaffSelectors();
                 renderCustomers();
                 renderOrders();
@@ -2248,6 +2453,7 @@
                 saveAllData();
                 renderStaff();
                 renderStaffFilter();
+                renderStaffCustomerFilter();
                 renderStaffSelectors();
                 showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
             }
@@ -2399,6 +2605,7 @@
             function renderAll() {
                 renderStaff();
                 renderStaffFilter();
+                renderStaffCustomerFilter();
                 renderStaffSelectors();
                 renderCustomerSelect('');
                 renderProductSelect();
@@ -2431,6 +2638,7 @@
                 updateUIForUser(currentUser);
                 renderStaff();
                 renderStaffFilter();
+                renderStaffCustomerFilter();
                 renderStaffSelectors();
                 renderCustomerSelect('');
                 renderProductSelect();
@@ -2443,11 +2651,13 @@
                     staffFilter.classList.remove('hidden');
                     document.getElementById('bulkArea').style.display = 'block';
                     npointConfig.classList.remove('staff-hidden');
+                    document.getElementById('customerFilterArea').style.display = 'flex';
                 } else {
                     adminTools.classList.add('hidden');
                     staffFilter.classList.add('hidden');
                     document.getElementById('bulkArea').style.display = 'none';
                     npointConfig.classList.add('staff-hidden');
+                    document.getElementById('customerFilterArea').style.display = 'none';
                 }
 
                 showToast(`Chào mừng ${user.name}!`, 'success');
@@ -2549,6 +2759,19 @@
 
             staffFilter.addEventListener('change', function() { renderOrders(); });
 
+            // Customer filter events
+            staffCustomerFilter.addEventListener('change', function() {
+                staffFilterValue = this.value;
+                renderCustomers();
+            });
+
+            clearCustomerFilter.addEventListener('click', function() {
+                staffCustomerFilter.value = 'all';
+                staffFilterValue = 'all';
+                renderCustomers();
+                showToast('Đã bỏ lọc nhân viên', 'success');
+            });
+
             addStaffBtn.addEventListener('click', addStaff);
             newStaffUsername.addEventListener('keypress', e => { if (e.key === 'Enter') addStaff(); });
             newStaffName.addEventListener('keypress', e => { if (e.key === 'Enter') addStaff(); });
@@ -2573,6 +2796,28 @@
                     importExcel(this.files[0]);
                 }
                 this.value = '';
+            });
+
+            // ===== PAGINATION EVENTS =====
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1;
+                renderCustomers();
+            });
+
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCustomerPage();
+                }
+            });
+
+            nextPageBtn.addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredCustomers.length / pageSize);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderCustomerPage();
+                }
             });
 
             // ========== TỰ ĐỘNG ĐỒNG BỘ KHI VÀO TRANG (KHÔNG CẦN ĐĂNG NHẬP) ==========
