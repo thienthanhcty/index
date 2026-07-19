@@ -336,6 +336,10 @@
         .npoint-config .npoint-btn.pull-btn { background: #7c3aed; }
         .npoint-config .npoint-btn.pull-btn:hover { background: #6d28d9; }
 
+        .npoint-config.staff-hidden {
+            display: none !important;
+        }
+
         @media (max-width: 768px) {
             .app-container { padding: 1rem; }
             .modal-box { padding: 1.5rem; }
@@ -575,8 +579,8 @@
             </div>
         </div>
 
-        <!-- NPOINT CONFIG -->
-        <div class="npoint-config">
+        <!-- NPOINT CONFIG - Ẩn với nhân viên -->
+        <div class="npoint-config" id="npointConfig">
             <label><i class="fas fa-cloud-upload-alt"></i> nPoint.io</label>
             <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID (ví dụ: 427a95cf5192933d2bf7)" />
             <button class="npoint-btn" id="npointConnectBtn"><i class="fas fa-link"></i> Kết nối</button>
@@ -858,6 +862,7 @@
             const syncStatus = document.getElementById('syncStatus');
 
             // Npoint DOM
+            const npointConfig = document.getElementById('npointConfig');
             const npointBucketInput = document.getElementById('npointBucketId');
             const npointConnectBtn = document.getElementById('npointConnectBtn');
             const npointPullBtn = document.getElementById('npointPullBtn');
@@ -2428,14 +2433,17 @@
                 renderProducts();
                 renderOrders();
 
+                // Ẩn/hiện các thành phần dành riêng cho admin
                 if (isAdmin()) {
                     adminTools.classList.remove('hidden');
                     staffFilter.classList.remove('hidden');
                     document.getElementById('bulkArea').style.display = 'block';
+                    npointConfig.classList.remove('staff-hidden');
                 } else {
                     adminTools.classList.add('hidden');
                     staffFilter.classList.add('hidden');
                     document.getElementById('bulkArea').style.display = 'none';
+                    npointConfig.classList.add('staff-hidden');
                 }
 
                 showToast(`Chào mừng ${user.name}!`, 'success');
@@ -2461,6 +2469,9 @@
                 showToast('Đã đăng xuất.', 'success');
                 updateSyncStatus('', 'Đã đăng xuất');
                 updateNpointStatus(false, 'Đã đăng xuất');
+                
+                // Hiển thị lại npoint config khi logout (sẽ bị ẩn khi login staff)
+                npointConfig.classList.remove('staff-hidden');
             }
 
             function updateUIForUser(user) {
@@ -2581,6 +2592,7 @@
             console.log('👤 Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công');
             console.log('👑 Admin có thể sửa/xóa tất cả khách hàng');
             console.log('📋 Trạng thái: Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công');
+            console.log('🔒 Phần cấu hình nPoint bị ẩn đối với nhân viên');
         })();
     </script>
 </body>
