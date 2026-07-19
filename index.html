@@ -284,7 +284,6 @@
         .customer-select-wrapper select { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.9rem; transition: 0.2s; background: #fafcff; }
         .customer-select-wrapper select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
 
-        /* NPOINT CONFIG - CHỈ ADMIN MỚI THẤY */
         .npoint-config {
             background: #f1f5f9;
             border-radius: 1rem;
@@ -340,32 +339,28 @@
         .npoint-config .npoint-btn:hover { background: #1d4ed8; }
         .npoint-config .npoint-btn.pull-btn { background: #7c3aed; }
         .npoint-config .npoint-btn.pull-btn:hover { background: #6d28d9; }
+        
+        .npoint-config .bucket-id-display {
+            font-size: 0.7rem;
+            color: #065f46;
+            background: #a7f3d0;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .npoint-config .bucket-id-display .copy-btn {
+            background: none;
+            border: none;
+            color: #065f46;
+            cursor: pointer;
+            padding: 0 0.3rem;
+        }
+        .npoint-config .bucket-id-display .copy-btn:hover { color: #1e40af; }
 
         .npoint-config.staff-hidden {
             display: none !important;
-        }
-
-        /* Copy button */
-        .copy-bucket-btn {
-            background: #059669;
-            color: white;
-            border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.8rem;
-        }
-        .copy-bucket-btn:hover { background: #047857; }
-
-        .bucket-info {
-            font-size: 0.7rem;
-            color: #6b7b93;
-            background: #eef2ff;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
@@ -620,11 +615,17 @@
         <!-- NPOINT CONFIG - CHỈ ADMIN MỚI THẤY -->
         <div class="npoint-config" id="npointConfig">
             <label><i class="fas fa-cloud-upload-alt"></i> nPoint.io</label>
-            <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID (ví dụ: 427a95cf5192933d2bf7)" />
+            <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID" />
             <button class="npoint-btn" id="npointConnectBtn"><i class="fas fa-link"></i> Kết nối</button>
             <button class="npoint-btn pull-btn" id="npointPullBtn"><i class="fas fa-download"></i> Pull</button>
             <button class="npoint-btn" id="npointPushBtn"><i class="fas fa-upload"></i> Push</button>
             <span class="npoint-status disconnected" id="npointStatus">Chưa kết nối</span>
+            <span id="bucketIdDisplay" style="display:none;font-size:0.7rem;color:#065f46;background:#a7f3d0;padding:0.2rem 0.8rem;border-radius:40px;white-space:nowrap;">
+                🔑 <span id="bucketIdText"></span>
+                <button onclick="copyBucketId()" style="background:none;border:none;color:#065f46;cursor:pointer;padding:0 0.3rem;" title="Copy ID">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </span>
         </div>
 
         <!-- Nhân viên -->
@@ -919,6 +920,8 @@
             const npointPullBtn = document.getElementById('npointPullBtn');
             const npointPushBtn = document.getElementById('npointPushBtn');
             const npointStatus = document.getElementById('npointStatus');
+            const bucketIdDisplay = document.getElementById('bucketIdDisplay');
+            const bucketIdText = document.getElementById('bucketIdText');
 
             // Customer
             const customerTableBody = document.getElementById('customerTableBody');
@@ -1110,8 +1113,51 @@
                 return `https://api.npoint.io/${bucketId}`;
             }
 
+            // ========== COPY BUCKET ID ==========
+            window.copyBucketId = function() {
+                const bucketId = localStorage.getItem(STORAGE_KEYS.NPOINT_BUCKET) || npointBucketId;
+                if (bucketId) {
+                    navigator.clipboard.writeText(bucketId).then(() => {
+                        showToast('📋 Đã copy Bucket ID!', 'success');
+                    }).catch(() => {
+                        // Fallback
+                        const textArea = document.createElement('textarea');
+                        textArea.value = bucketId;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        showToast('📋 Đã copy Bucket ID!', 'success');
+                    });
+                } else {
+                    showToast('Chưa có Bucket ID để copy!', 'error');
+                }
+            };
+
+            // ========== UPDATE URL WITH BUCKET ==========
+            function updateUrlWithBucket(bucketId) {
+                if (!bucketId) return;
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('bucket', bucketId);
+                    window.history.replaceState({}, '', url);
+                } catch (e) {
+                    console.log('Không thể cập nhật URL:', e);
+                }
+            }
+
+            // ========== GET BUCKET FROM URL ==========
+            function getBucketFromUrl() {
+                try {
+                    const url = new URL(window.location);
+                    return url.searchParams.get('bucket') || '';
+                } catch (e) {
+                    return '';
+                }
+            }
+
             async function connectNpoint() {
-                const bucketId = npointBucketInput.value.trim();
+                const bucketId = npointBucketInput.value.trim() || getBucketFromUrl();
                 if (!bucketId) {
                     showToast('Vui lòng nhập Bucket ID!', 'error');
                     return;
@@ -1124,11 +1170,19 @@
                     
                     if (response.ok) {
                         npointBucketId = bucketId;
+                        npointBucketInput.value = bucketId;
                         saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketId);
+                        
+                        // Cập nhật URL
+                        updateUrlWithBucket(bucketId);
+                        
+                        // Hiển thị Bucket ID
+                        bucketIdText.textContent = bucketId;
+                        bucketIdDisplay.style.display = 'inline';
+                        
                         updateNpointStatus(true, '✅ Đã kết nối');
                         showToast('Kết nối npoint.io thành công!', 'success');
                         
-                        // Tự động pull dữ liệu
                         await pullFromNpoint();
                         startAutoSync();
                     } else {
@@ -1142,7 +1196,7 @@
                 }
             }
 
-            // ========== SILENT PUSH TO NPOINT (không thông báo) ==========
+            // ========== SILENT PUSH TO NPOINT ==========
             async function silentPushToNpoint() {
                 const url = getNpointApiUrl();
                 if (!url || !currentUser || !isNpointConnected) return;
@@ -2552,8 +2606,13 @@
 
                 showToast(`Chào mừng ${user.name}!`, 'success');
                 
-                // Restore npoint connection
-                if (npointBucketId) {
+                // Check bucket từ URL hoặc localStorage
+                const bucketFromUrl = getBucketFromUrl();
+                if (bucketFromUrl) {
+                    npointBucketInput.value = bucketFromUrl;
+                    saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketFromUrl);
+                    connectNpoint();
+                } else if (npointBucketId) {
                     npointBucketInput.value = npointBucketId;
                     connectNpoint();
                 }
@@ -2574,7 +2633,6 @@
                 updateSyncStatus('', 'Đã đăng xuất');
                 updateNpointStatus(false, 'Đã đăng xuất');
                 
-                // Hiển thị lại npoint config khi logout
                 npointConfig.classList.remove('staff-hidden');
             }
 
@@ -2691,11 +2749,10 @@
 
             console.log('🛒 Hệ thống quản lý bán hàng');
             console.log('☁️ Tích hợp npoint.io để đồng bộ dữ liệu');
-            console.log('📁 Bucket ID: ' + (npointBucketId || 'Chưa cấu hình'));
+            console.log('📁 Bucket ID lưu trên URL: ?bucket=xxx');
             console.log('🔄 Tự động đồng bộ mỗi 1 giây');
-            console.log('👤 Nhân viên chỉ cần đăng nhập là dùng được, không cần quan tâm nPoint');
-            console.log('👑 Admin quản lý cấu hình nPoint');
-            console.log('📋 Trạng thái: Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công');
+            console.log('👤 Nhân viên chỉ cần đăng nhập là dùng được');
+            console.log('👑 Admin copy link có sẵn Bucket ID để dùng trên máy khác');
         })();
     </script>
 </body>
