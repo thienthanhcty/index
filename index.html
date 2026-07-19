@@ -9,93 +9,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background: #f0f4fe;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1.5rem;
-        }
-
-        .login-page {
-            max-width: 420px;
-            width: 100%;
-            background: white;
-            border-radius: 2.5rem;
-            padding: 2.5rem 2rem 2.2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
-            transition: 0.25s;
-        }
+        /* ===== GIỮ NGUYÊN TOÀN BỘ CSS CỦA PHIÊN BẢN TRƯỚC ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f0f4fe; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
+        .login-page { max-width: 420px; width: 100%; background: white; border-radius: 2.5rem; padding: 2.5rem 2rem 2.2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2); transition: 0.25s; }
         .login-page.hidden { display: none; }
-
         .login-header { text-align: center; margin-bottom: 2rem; }
         .login-header h1 { font-size: 2rem; font-weight: 700; color: #0b1b33; }
         .login-header h1 i { color: #2563eb; margin-right: 6px; }
         .login-header p { color: #5d6f88; margin-top: 0.4rem; font-size: 0.95rem; }
-
         .form-group { margin-bottom: 1.2rem; }
         .form-group label { display: block; font-weight: 500; font-size: 0.85rem; color: #1f2a41; margin-bottom: 0.3rem; }
         .form-group input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.95rem; transition: 0.2s; background: #fafcff; }
         .form-group input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
         .form-group textarea { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.95rem; transition: 0.2s; background: #fafcff; resize: vertical; min-height: 60px; font-family: 'Inter', sans-serif; }
         .form-group textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
-
         .login-btn { width: 100%; padding: 0.8rem; background: #2563eb; color: white; border: none; border-radius: 2rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 0.5rem; }
         .login-btn:hover { background: #1d4ed8; transform: scale(0.98); }
         .login-btn:active { transform: scale(0.95); }
-
         .login-error { color: #dc2626; font-size: 0.85rem; margin-top: 0.6rem; text-align: center; min-height: 1.6rem; }
         .login-hint { margin-top: 1.5rem; font-size: 0.8rem; color: #6b7b93; text-align: center; border-top: 1px solid #eef2f8; padding-top: 1.2rem; }
         .login-hint i { color: #2563eb; }
-
         .app-container { max-width: 100%; width: 100%; background: white; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 2rem 2.5rem 2.5rem; transition: 0.2s; display: none; }
         .app-container.active { display: block; }
-
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #e9edf4; padding-bottom: 1.25rem; }
         .logo-area h1 { font-size: 1.8rem; font-weight: 700; color: #0b1b33; letter-spacing: -0.5px; }
         .logo-area i { color: #2563eb; margin-right: 8px; }
-
         .user-panel { display: flex; align-items: center; gap: 1.8rem; flex-wrap: wrap; }
         .role-badge { background: #eef2ff; padding: 0.4rem 1.2rem; border-radius: 40px; font-weight: 600; font-size: 0.9rem; color: #1e40af; }
         .role-badge i { margin-right: 6px; }
-
         .logout-btn { background: none; border: 1px solid #d0d9e8; padding: 0.5rem 1.3rem; border-radius: 40px; font-weight: 500; color: #1f2a41; cursor: pointer; transition: 0.2s; background: white; }
         .logout-btn:hover { background: #f0f3f9; border-color: #a0b3d0; }
         .change-password-btn { background: none; border: 1px solid #d0d9e8; padding: 0.5rem 1.3rem; border-radius: 40px; font-weight: 500; color: #1f2a41; cursor: pointer; transition: 0.2s; background: white; }
         .change-password-btn:hover { background: #eef2ff; border-color: #2563eb; color: #2563eb; }
         .change-password-btn i { color: #2563eb; margin-right: 6px; }
-
-        .sync-status {
-            font-size: 0.7rem;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            background: #eef2f8;
-            color: #4b5a6f;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            white-space: nowrap;
-        }
+        .sync-status { font-size: 0.7rem; padding: 0.3rem 1rem; border-radius: 40px; background: #eef2f8; color: #4b5a6f; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
         .sync-status.synced { background: #a7f3d0; color: #065f46; }
         .sync-status.syncing { background: #fef3c7; color: #92400e; animation: pulse 1s infinite; }
         .sync-status.error { background: #fee2e2; color: #991b1b; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .staff-section { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; margin-bottom: 1.5rem; border: 1px solid #eef2f8; }
         .staff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 0.8rem; }
-
         .staff-card { background: white; border-radius: 1.2rem; padding: 0.9rem 1.2rem; display: flex; align-items: center; gap: 0.9rem; border: 1px solid #eef2f8; transition: 0.15s; position: relative; }
         .staff-card .staff-avatar { width: 42px; height: 42px; background: #2563eb10; border-radius: 40px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-weight: 600; font-size: 1.1rem; }
         .staff-info { flex: 1; }
@@ -104,7 +58,6 @@
         .staff-card .delete-staff { position: absolute; top: -6px; right: -6px; background: #fee2e2; color: #b91c1c; border: none; width: 24px; height: 24px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
         .staff-card:hover .delete-staff { opacity: 1; }
         .staff-card .delete-staff:hover { background: #fecaca; }
-
         .admin-tools { margin-top: 1.2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
         .admin-tools input { padding: 0.5rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 2rem; font-size: 0.85rem; flex: 1; min-width: 120px; background: white; }
         .admin-tools input:focus { outline: none; border-color: #2563eb; }
@@ -116,9 +69,7 @@
         .admin-tools .btn-import:hover { background: #6d28d9; }
         .admin-tools .btn-sync { background: #2563eb; }
         .admin-tools .btn-sync:hover { background: #1d4ed8; }
-
         .hidden { display: none !important; }
-
         .tabs-container { margin-bottom: 1.5rem; }
         .tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid #eef2f8; padding-bottom: 0.5rem; flex-wrap: wrap; }
         .tab-btn { background: none; border: none; padding: 0.6rem 1.5rem; font-weight: 600; font-size: 0.9rem; color: #6b7b93; cursor: pointer; border-radius: 2rem; transition: 0.2s; }
@@ -126,7 +77,6 @@
         .tab-btn.active { background: #eef2ff; color: #2563eb; }
         .tab-content { display: none; padding-top: 1.2rem; }
         .tab-content.active { display: block; }
-
         .bulk-area { background: white; border-radius: 1.2rem; padding: 1.5rem; border: 1px solid #eef2f8; margin-bottom: 1.5rem; }
         .bulk-area h4 { font-weight: 600; color: #0b1b33; margin-bottom: 0.8rem; }
         .bulk-area .bulk-row { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: flex-start; }
@@ -141,11 +91,9 @@
         .bulk-hint i { color: #2563eb; }
         .bulk-hint .example-box { background: white; padding: 0.4rem 0.8rem; border-radius: 0.5rem; margin-top: 0.3rem; font-family: monospace; font-size: 0.75rem; color: #0b1b33; border: 1px solid #e2e8f0; }
         .separator-badge { display: inline-block; background: #dbeafe; color: #2563eb; padding: 0.05rem 0.6rem; border-radius: 1rem; font-weight: 700; font-size: 0.8rem; margin: 0 0.2rem; }
-
         .customer-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .customer-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
         .customer-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
-
         .customer-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
         .customer-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; }
         .customer-table-container thead { background: #eef2ff; }
@@ -161,11 +109,9 @@
         .customer-table-container .action-buttons .btn-delete-customer:hover { background: #fee2e2; }
         .customer-table-container .note-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: #4b5a6f; }
         .customer-table-container .note-time-cell { font-size: 0.7rem; color: #6b7b93; white-space: nowrap; }
-
         .product-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .product-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
         .product-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
-
         .product-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
         .product-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 500px; }
         .product-table-container thead { background: #eef2ff; }
@@ -179,51 +125,42 @@
         .product-table-container .action-buttons .btn-delete-product { color: #dc2626; }
         .product-table-container .action-buttons .btn-delete-product:hover { background: #fee2e2; }
         .product-table-container .note-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: #4b5a6f; }
-
         .order-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
         .order-table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .order-table-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
         .order-table-header h3 i { color: #2563eb; }
         .order-table-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
-
         .filter-area { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
         .filter-area select { padding: 0.5rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 2rem; font-size: 0.85rem; background: white; cursor: pointer; min-width: 150px; }
         .filter-area select:focus { outline: none; border-color: #2563eb; }
         .add-order-btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .add-order-btn:hover { background: #1d4ed8; }
-
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1200px; }
         thead { background: #eef2ff; }
         th { padding: 0.7rem 0.8rem; text-align: left; font-weight: 600; color: #1f2a41; border-bottom: 2px solid #d0d9e8; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
         td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e9edf4; vertical-align: middle; color: #0b1b33; }
         tr:hover td { background: #f8fafc; }
-
         .status-badge { padding: 0.2rem 0.8rem; border-radius: 40px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
         .status-waiting { background: #fef3c7; color: #92400e; }
         .status-processing { background: #dbeafe; color: #1e40af; }
         .status-shipping { background: #e0e7ff; color: #3730a3; }
         .status-success { background: #a7f3d0; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #991b1b; }
-
         .action-buttons { display: flex; gap: 0.3rem; }
         .action-buttons button { background: none; border: none; padding: 0.2rem 0.5rem; border-radius: 0.5rem; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
         .action-buttons .btn-edit-order { color: #2563eb; }
         .action-buttons .btn-edit-order:hover { background: #eef2ff; }
         .action-buttons .btn-delete-order { color: #dc2626; }
         .action-buttons .btn-delete-order:hover { background: #fee2e2; }
-
         .staff-badge { background: #eef2f8; padding: 0.1rem 0.6rem; border-radius: 40px; font-size: 0.7rem; color: #4b5a6f; display: inline-block; }
         .time-badge { background: #eef2ff; padding: 0.1rem 0.6rem; border-radius: 40px; font-size: 0.7rem; color: #1e40af; display: inline-block; font-weight: 500; }
-
         .toast { position: fixed; bottom: 2rem; right: 2rem; background: #1f2937; color: white; padding: 0.8rem 1.5rem; border-radius: 1.2rem; font-size: 0.9rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: 0.3s; pointer-events: none; z-index: 999; }
         .toast.show { opacity: 1; transform: translateY(0); }
         .toast.success { background: #065f46; }
         .toast.error { background: #991b1b; }
         .toast i { margin-right: 8px; }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-
         .modal-box { background: white; border-radius: 2rem; padding: 2rem 2.5rem; max-width: 550px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
         .modal-box h2 { margin-bottom: 1.2rem; color: #0b1b33; font-size: 1.3rem; }
         .modal-box h2 i { color: #2563eb; }
@@ -239,150 +176,47 @@
         .modal-actions .btn-primary:hover { background: #1d4ed8; }
         .modal-actions .btn-secondary { background: #eef2f8; color: #1f2a41; }
         .modal-actions .btn-secondary:hover { background: #e2e8f0; }
-
         .footer-note { margin-top: 2rem; text-align: center; font-size: 0.8rem; color: #6b7b93; border-top: 1px solid #eef2f8; padding-top: 1.5rem; }
         .import-input { display: none; }
         .format-hint { font-size: 0.7rem; color: #6b7b93; background: #f1f5f9; padding: 0.3rem 0.8rem; border-radius: 1rem; display: inline-block; margin-top: 0.5rem; }
         .format-hint i { color: #2563eb; }
-
         .password-strength { height: 4px; border-radius: 4px; margin-top: 4px; transition: 0.3s; background: #e2e8f0; }
         .password-strength.weak { background: #ef4444; width: 33%; }
         .password-strength.medium { background: #f59e0b; width: 66%; }
         .password-strength.strong { background: #22c55e; width: 100%; }
-
         .auto-time-info { font-size: 0.7rem; color: #6b7b93; background: #eef2ff; padding: 0.2rem 0.8rem; border-radius: 1rem; display: inline-block; margin-top: 0.3rem; }
         .auto-time-info i { color: #2563eb; }
-
         .add-customer-btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .add-customer-btn:hover { background: #1d4ed8; }
         .add-product-btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .add-product-btn:hover { background: #1d4ed8; }
-
-        .customer-search-area {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            background: #f1f5f9;
-            border-radius: 2rem;
-            padding: 0.3rem 0.3rem 0.3rem 1rem;
-            margin-bottom: 0.8rem;
-            border: 1.5px solid #e2e8f0;
-            transition: 0.2s;
-        }
-        .customer-search-area:focus-within {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px #2563eb15;
-        }
+        .customer-search-area { display: flex; gap: 0.5rem; align-items: center; background: #f1f5f9; border-radius: 2rem; padding: 0.3rem 0.3rem 0.3rem 1rem; margin-bottom: 0.8rem; border: 1.5px solid #e2e8f0; transition: 0.2s; }
+        .customer-search-area:focus-within { border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
         .customer-search-area i { color: #6b7b93; font-size: 0.85rem; }
         .customer-search-area input { border: none; background: transparent; padding: 0.5rem 0; font-size: 0.85rem; flex: 1; outline: none; font-family: 'Inter', sans-serif; }
         .customer-search-area .search-clear-btn { background: none; border: none; color: #6b7b93; cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 2rem; font-size: 0.8rem; display: none; }
         .customer-search-area .search-clear-btn:hover { background: #e2e8f0; }
         .customer-search-area .search-clear-btn.visible { display: block; }
         .search-result-count { font-size: 0.7rem; color: #6b7b93; padding: 0 0.5rem; }
-
         .customer-select-wrapper { position: relative; }
         .customer-select-wrapper select { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.9rem; transition: 0.2s; background: #fafcff; }
         .customer-select-wrapper select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
-
-        .npoint-config {
-            background: #f1f5f9;
-            border-radius: 1rem;
-            padding: 0.8rem 1.2rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            border: 1px solid #e2e8f0;
-        }
-        .npoint-config label {
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #1f2a41;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .npoint-config input {
-            flex: 1;
-            min-width: 200px;
-            padding: 0.4rem 1rem;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            background: white;
-        }
-        .npoint-config input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px #2563eb15;
-        }
-        .npoint-config .npoint-status {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            white-space: nowrap;
-        }
+        .npoint-config { background: #f1f5f9; border-radius: 1rem; padding: 0.8rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; border: 1px solid #e2e8f0; }
+        .npoint-config label { font-weight: 600; font-size: 0.8rem; color: #1f2a41; display: flex; align-items: center; gap: 0.5rem; }
+        .npoint-config input { flex: 1; min-width: 200px; padding: 0.4rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 2rem; font-size: 0.8rem; background: white; }
+        .npoint-config input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
+        .npoint-config .npoint-status { font-size: 0.7rem; padding: 0.2rem 0.8rem; border-radius: 40px; white-space: nowrap; }
         .npoint-config .npoint-status.connected { background: #a7f3d0; color: #065f46; }
         .npoint-config .npoint-status.disconnected { background: #fee2e2; color: #991b1b; }
-        .npoint-config .npoint-btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 0.4rem 1.2rem;
-            border-radius: 2rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.8rem;
-        }
+        .npoint-config .npoint-btn { background: #2563eb; color: white; border: none; padding: 0.4rem 1.2rem; border-radius: 2rem; font-weight: 500; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
         .npoint-config .npoint-btn:hover { background: #1d4ed8; }
         .npoint-config .npoint-btn.pull-btn { background: #7c3aed; }
         .npoint-config .npoint-btn.pull-btn:hover { background: #6d28d9; }
-        
-        .npoint-config .bucket-id-display {
-            font-size: 0.7rem;
-            color: #065f46;
-            background: #a7f3d0;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .npoint-config .bucket-id-display .copy-btn {
-            background: none;
-            border: none;
-            color: #065f46;
-            cursor: pointer;
-            padding: 0 0.3rem;
-        }
+        .npoint-config .bucket-id-display { font-size: 0.7rem; color: #065f46; background: #a7f3d0; padding: 0.2rem 0.8rem; border-radius: 40px; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .npoint-config .bucket-id-display .copy-btn { background: none; border: none; color: #065f46; cursor: pointer; padding: 0 0.3rem; }
         .npoint-config .bucket-id-display .copy-btn:hover { color: #1e40af; }
-
-        .npoint-config.staff-hidden {
-            display: none !important;
-        }
-
-        @media (max-width: 768px) {
-            .app-container { padding: 1rem; }
-            .modal-box { padding: 1.5rem; }
-            .staff-grid { grid-template-columns: 1fr 1fr; }
-            .admin-tools { flex-direction: column; }
-            .admin-tools input { width: 100%; }
-            .user-panel { gap: 0.8rem; }
-            .filter-area { flex-direction: column; width: 100%; }
-            .filter-area select { width: 100%; }
-            table { min-width: 1400px; }
-            .customer-table-container table { min-width: 900px; }
-            .product-table-container table { min-width: 600px; }
-            .bulk-area .bulk-row { flex-direction: column; }
-            .bulk-area textarea { width: 100%; }
-            .bulk-area .bulk-options { width: 100%; }
-            .tabs { flex-direction: column; }
-            .tab-btn { text-align: center; }
-            .customer-search-area { flex-wrap: wrap; }
-            .npoint-config { flex-direction: column; align-items: stretch; }
-        }
+        .npoint-config.staff-hidden { display: none !important; }
+        @media (max-width: 768px) { .app-container { padding: 1rem; } .modal-box { padding: 1.5rem; } .staff-grid { grid-template-columns: 1fr 1fr; } .admin-tools { flex-direction: column; } .admin-tools input { width: 100%; } .user-panel { gap: 0.8rem; } .filter-area { flex-direction: column; width: 100%; } .filter-area select { width: 100%; } table { min-width: 1400px; } .customer-table-container table { min-width: 900px; } .product-table-container table { min-width: 600px; } .bulk-area .bulk-row { flex-direction: column; } .bulk-area textarea { width: 100%; } .bulk-area .bulk-options { width: 100%; } .tabs { flex-direction: column; } .tab-btn { text-align: center; } .customer-search-area { flex-wrap: wrap; } .npoint-config { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
@@ -575,15 +409,19 @@
         <div class="login-header">
             <h1><i class="fas fa-store-alt"></i> SalesHub</h1>
             <p>Đăng nhập với tài khoản của bạn</p>
+            <!-- Hiển thị trạng thái đồng bộ trên màn hình login -->
+            <div style="margin-top: 0.5rem; font-size: 0.8rem;" id="loginSyncStatus">
+                <span class="sync-status" id="loginSyncBadge">🔄 Đang tải dữ liệu...</span>
+            </div>
         </div>
         <form id="loginForm" onsubmit="return false;">
             <div class="form-group">
                 <label><i class="fas fa-user"></i> Tên đăng nhập</label>
-                <input type="text" id="loginUsername" placeholder="admin / nhanvien1 ..." value="admin" />
+                <input type="text" id="loginUsername" placeholder="Tên đăng nhập" value="" />
             </div>
             <div class="form-group">
                 <label><i class="fas fa-lock"></i> Mật khẩu</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" value="123456" />
+                <input type="password" id="loginPassword" placeholder="••••••••" value="" />
             </div>
             <button type="button" class="login-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Đăng nhập</button>
             <div class="login-error" id="loginError"></div>
@@ -612,10 +450,10 @@
             </div>
         </div>
 
-        <!-- NPOINT CONFIG - CHỈ ADMIN MỚI THẤY -->
+        <!-- NPOINT CONFIG -->
         <div class="npoint-config" id="npointConfig">
             <label><i class="fas fa-cloud-upload-alt"></i> nPoint.io</label>
-            <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID" value="427a95cf5192933d2bf7" />
+            <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID" />
             <button class="npoint-btn" id="npointConnectBtn"><i class="fas fa-link"></i> Kết nối</button>
             <button class="npoint-btn pull-btn" id="npointPullBtn"><i class="fas fa-download"></i> Pull</button>
             <button class="npoint-btn" id="npointPushBtn"><i class="fas fa-upload"></i> Push</button>
@@ -899,6 +737,7 @@
             const loginUsername = document.getElementById('loginUsername');
             const loginPassword = document.getElementById('loginPassword');
             const loginError = document.getElementById('loginError');
+            const loginSyncBadge = document.getElementById('loginSyncBadge');
 
             const staffGrid = document.getElementById('staffGrid');
             const userRoleText = document.getElementById('userRoleText');
@@ -1113,6 +952,13 @@
                 return `https://api.npoint.io/${bucketId}`;
             }
 
+            function updateLoginSyncStatus(status, message) {
+                if (loginSyncBadge) {
+                    loginSyncBadge.className = 'sync-status ' + status;
+                    loginSyncBadge.textContent = message;
+                }
+            }
+
             // ========== COPY BUCKET ID ==========
             window.copyBucketId = function() {
                 const bucketId = localStorage.getItem(STORAGE_KEYS.NPOINT_BUCKET) || npointBucketId;
@@ -1120,7 +966,6 @@
                     navigator.clipboard.writeText(bucketId).then(() => {
                         showToast('📋 Đã copy Bucket ID!', 'success');
                     }).catch(() => {
-                        // Fallback
                         const textArea = document.createElement('textarea');
                         textArea.value = bucketId;
                         document.body.appendChild(textArea);
@@ -1173,10 +1018,8 @@
                         npointBucketInput.value = bucketId;
                         saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketId);
                         
-                        // Cập nhật URL
                         updateUrlWithBucket(bucketId);
                         
-                        // Hiển thị Bucket ID
                         bucketIdText.textContent = bucketId;
                         bucketIdDisplay.style.display = 'inline';
                         
@@ -1259,6 +1102,7 @@
 
                 try {
                     updateSyncStatus('syncing', '🔄 Đang tải từ npoint...');
+                    updateLoginSyncStatus('syncing', '🔄 Đang tải dữ liệu...');
                     const response = await fetch(url);
                     
                     if (!response.ok) {
@@ -1287,14 +1131,17 @@
                         renderAll();
                         updateSyncStatus('synced', '✅ Đã tải từ npoint');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
-                        showToast(`Đã tải dữ liệu từ npoint.io (${orders.length} đơn hàng)`, 'success');
+                        updateLoginSyncStatus('synced', '✅ Đã đồng bộ dữ liệu');
+                        showToast(`✅ Đã tải dữ liệu từ npoint.io (${orders.length} đơn hàng)`, 'success');
                     } else {
                         showToast('Dữ liệu không hợp lệ!', 'error');
                         updateSyncStatus('error', '❌ Dữ liệu không hợp lệ');
+                        updateLoginSyncStatus('error', '❌ Dữ liệu không hợp lệ');
                     }
                 } catch (error) {
                     console.error('Lỗi pull từ npoint:', error);
                     updateSyncStatus('error', '❌ Lỗi tải dữ liệu');
+                    updateLoginSyncStatus('error', '❌ Lỗi tải dữ liệu');
                     showToast('Lỗi tải dữ liệu từ npoint.io!', 'error');
                 }
             }
@@ -2591,7 +2438,6 @@
                 renderProducts();
                 renderOrders();
 
-                // Ẩn/hiện các thành phần dành riêng cho admin
                 if (isAdmin()) {
                     adminTools.classList.remove('hidden');
                     staffFilter.classList.remove('hidden');
@@ -2606,7 +2452,6 @@
 
                 showToast(`Chào mừng ${user.name}!`, 'success');
                 
-                // Check bucket từ URL hoặc localStorage
                 const bucketFromUrl = getBucketFromUrl();
                 if (bucketFromUrl) {
                     npointBucketInput.value = bucketFromUrl;
@@ -2626,13 +2471,13 @@
                 currentUser = null;
                 loginPage.classList.remove('hidden');
                 appContainer.classList.remove('active');
-                loginUsername.value = 'admin';
-                loginPassword.value = '123456';
+                loginUsername.value = '';
+                loginPassword.value = '';
                 loginError.textContent = '';
                 showToast('Đã đăng xuất.', 'success');
                 updateSyncStatus('', 'Đã đăng xuất');
                 updateNpointStatus(false, 'Đã đăng xuất');
-                
+                updateLoginSyncStatus('', '');
                 npointConfig.classList.remove('staff-hidden');
             }
 
@@ -2674,12 +2519,10 @@
                 if (e.key === 'Enter' && passwordModal.classList.contains('active')) changePassword();
             });
 
-            // Npoint events
             npointConnectBtn.addEventListener('click', connectNpoint);
             npointPullBtn.addEventListener('click', pullFromNpoint);
             npointPushBtn.addEventListener('click', pushToNpoint);
 
-            // Customer events
             openCustomerModalBtn.addEventListener('click', openCustomerModal);
             closeCustomerModalBtn.addEventListener('click', closeCustomerModal);
             saveCustomerBtn.addEventListener('click', saveCustomer);
@@ -2691,7 +2534,6 @@
                 if (e.key === 'Enter' && customerModal.classList.contains('active')) saveCustomer();
             });
 
-            // Product events
             openProductModalBtn.addEventListener('click', openProductModal);
             closeProductModalBtn.addEventListener('click', closeProductModal);
             saveProductBtn.addEventListener('click', saveProduct);
@@ -2703,10 +2545,8 @@
                 if (e.key === 'Enter' && productModal.classList.contains('active')) saveProduct();
             });
 
-            // Bulk add
             bulkAddBtn.addEventListener('click', bulkAddCustomers);
 
-            // Order events
             staffFilter.addEventListener('change', function() { renderOrders(); });
 
             addStaffBtn.addEventListener('click', addStaff);
@@ -2735,14 +2575,66 @@
                 this.value = '';
             });
 
+            // ========== TỰ ĐỘNG ĐỒNG BỘ KHI VÀO TRANG (KHÔNG CẦN ĐĂNG NHẬP) ==========
+            (async function autoSyncOnLoad() {
+                const bucketFromUrl = getBucketFromUrl();
+                if (bucketFromUrl) {
+                    console.log('🔄 Phát hiện Bucket ID trong URL, đang đồng bộ...');
+                    npointBucketInput.value = bucketFromUrl;
+                    saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketFromUrl);
+                    updateLoginSyncStatus('syncing', '🔄 Đang đồng bộ dữ liệu...');
+                    
+                    try {
+                        const url = `https://api.npoint.io/${bucketFromUrl}`;
+                        const response = await fetch(url);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data && data.users) {
+                                users = data.users;
+                                products = data.products || products;
+                                customers = data.customers || customers;
+                                orders = data.orders || orders;
+                                
+                                if (products.length > 0) {
+                                    nextProductId = Math.max(...products.map(p => p.id)) + 1;
+                                }
+                                if (customers.length > 0) {
+                                    nextCustomerId = Math.max(...customers.map(c => c.id)) + 1;
+                                }
+                                if (orders.length > 0) {
+                                    nextOrderId = Math.max(...orders.map(o => o.id)) + 1;
+                                }
+                                
+                                saveAllData();
+                                updateLoginSyncStatus('synced', '✅ Đã đồng bộ dữ liệu từ cloud');
+                                console.log('✅ Đã đồng bộ dữ liệu từ nPoint.io');
+                                showToast('✅ Đã đồng bộ dữ liệu từ nPoint.io!', 'success');
+                                
+                                // Cập nhật UI nếu đã đăng nhập
+                                if (currentUser) {
+                                    renderAll();
+                                }
+                            }
+                        } else {
+                            updateLoginSyncStatus('error', '❌ Không tìm thấy Bucket ID');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi đồng bộ tự động:', error);
+                        updateLoginSyncStatus('error', '❌ Lỗi kết nối');
+                    }
+                } else {
+                    updateLoginSyncStatus('', '');
+                }
+            })();
+
             // ========== KHỞI ĐỘNG ==========
             loginPage.classList.remove('hidden');
             appContainer.classList.remove('active');
-            loginUsername.value = 'admin';
-            loginPassword.value = '123456';
+            loginUsername.value = '';
+            loginPassword.value = '';
             loginError.textContent = '';
 
-            // Load npoint bucket
             if (npointBucketId) {
                 npointBucketInput.value = npointBucketId;
             }
@@ -2750,9 +2642,10 @@
             console.log('🛒 Hệ thống quản lý bán hàng');
             console.log('☁️ Tích hợp npoint.io để đồng bộ dữ liệu');
             console.log('📁 Bucket ID lưu trên URL: ?bucket=xxx');
-            console.log('🔄 Tự động đồng bộ mỗi 1 giây');
+            console.log('🔄 Tự động đồng bộ khi vào trang (không cần đăng nhập)');
             console.log('👤 Nhân viên chỉ cần đăng nhập là dùng được');
             console.log('👑 Admin copy link có sẵn Bucket ID để dùng trên máy khác');
+            console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
         })();
     </script>
 </body>
