@@ -147,7 +147,7 @@
         .customer-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
 
         .customer-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
-        .customer-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 700px; }
+        .customer-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; }
         .customer-table-container thead { background: #eef2ff; }
         .customer-table-container th { padding: 0.7rem 0.8rem; text-align: left; font-weight: 600; color: #1f2a41; border-bottom: 2px solid #d0d9e8; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
         .customer-table-container td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e9edf4; vertical-align: middle; color: #0b1b33; }
@@ -160,6 +160,7 @@
         .customer-table-container .action-buttons .btn-delete-customer { color: #dc2626; }
         .customer-table-container .action-buttons .btn-delete-customer:hover { background: #fee2e2; }
         .customer-table-container .note-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: #4b5a6f; }
+        .customer-table-container .note-time-cell { font-size: 0.7rem; color: #6b7b93; white-space: nowrap; }
 
         .product-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
         .product-header h3 { font-weight: 600; font-size: 1.1rem; color: #1f2a41; display: flex; align-items: center; gap: 8px; }
@@ -283,6 +284,7 @@
         .customer-select-wrapper select { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.9rem; transition: 0.2s; background: #fafcff; }
         .customer-select-wrapper select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
 
+        /* NPOINT CONFIG - CHỈ ADMIN MỚI THẤY */
         .npoint-config {
             background: #f1f5f9;
             border-radius: 1rem;
@@ -343,6 +345,29 @@
             display: none !important;
         }
 
+        /* Copy button */
+        .copy-bucket-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        .copy-bucket-btn:hover { background: #047857; }
+
+        .bucket-info {
+            font-size: 0.7rem;
+            color: #6b7b93;
+            background: #eef2ff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+
         @media (max-width: 768px) {
             .app-container { padding: 1rem; }
             .modal-box { padding: 1.5rem; }
@@ -353,7 +378,7 @@
             .filter-area { flex-direction: column; width: 100%; }
             .filter-area select { width: 100%; }
             table { min-width: 1400px; }
-            .customer-table-container table { min-width: 700px; }
+            .customer-table-container table { min-width: 900px; }
             .product-table-container table { min-width: 600px; }
             .bulk-area .bulk-row { flex-direction: column; }
             .bulk-area textarea { width: 100%; }
@@ -592,7 +617,7 @@
             </div>
         </div>
 
-        <!-- NPOINT CONFIG - Ẩn với nhân viên -->
+        <!-- NPOINT CONFIG - CHỈ ADMIN MỚI THẤY -->
         <div class="npoint-config" id="npointConfig">
             <label><i class="fas fa-cloud-upload-alt"></i> nPoint.io</label>
             <input type="text" id="npointBucketId" placeholder="Nhập Bucket ID (ví dụ: 427a95cf5192933d2bf7)" />
@@ -671,6 +696,7 @@
                                 <th>SĐT</th>
                                 <th>Địa chỉ</th>
                                 <th>Ghi chú</th>
+                                <th>Thời gian ghi chú</th>
                                 <th>NV phụ trách</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -684,6 +710,8 @@
                     <i class="fas fa-info-circle"></i> Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công
                     <br />
                     <i class="fas fa-info-circle"></i> Quản trị có thể sửa/xóa tất cả khách hàng
+                    <br />
+                    <i class="fas fa-clock"></i> Thời gian ghi chú được tự động cập nhật khi nhân viên sửa ghi chú
                 </div>
             </div>
 
@@ -776,6 +804,8 @@
             <i class="fas fa-edit"></i> <b>Quyền sửa:</b> Nhân viên sửa được thông tin khách hàng được phân công
             <br />
             <i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
+            <br />
+            <i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
         </div>
     </div>
 
@@ -820,16 +850,16 @@
             ];
 
             const DEFAULT_CUSTOMERS = [
-                { id: 1, name: 'Nguyễn Văn An', phone: '0901234567', address: '123 Lê Lợi, Q1, TP.HCM', note: 'Khách VIP, đã mua 5 lần',
+                { id: 1, name: 'Nguyễn Văn An', phone: '0901234567', address: '123 Lê Lợi, Q1, TP.HCM', note: 'Khách VIP, đã mua 5 lần', noteTime: '2026-07-19 10:30',
                     staffId: 2 },
-                { id: 2, name: 'Trần Thị Bích', phone: '0912345678', address: '456 Nguyễn Huệ, Q3, TP.HCM', note: 'Đã gọi 2 lần',
+                { id: 2, name: 'Trần Thị Bích', phone: '0912345678', address: '456 Nguyễn Huệ, Q3, TP.HCM', note: 'Đã gọi 2 lần', noteTime: '2026-07-19 09:15',
                     staffId: 3 },
                 { id: 3, name: 'Lê Văn Cường', phone: '0923456789', address: '789 Cách Mạng Tháng 8, Q10, TP.HCM',
-                    note: 'Khách tiềm năng', staffId: 2 },
-                { id: 4, name: 'Phạm Thị Dung', phone: '0934567890', address: '321 Trần Hưng Đạo, Q5, TP.HCM', note: '',
+                    note: 'Khách tiềm năng', noteTime: '2026-07-18 16:45', staffId: 2 },
+                { id: 4, name: 'Phạm Thị Dung', phone: '0934567890', address: '321 Trần Hưng Đạo, Q5, TP.HCM', note: '', noteTime: '',
                     staffId: 4 },
                 { id: 5, name: 'Hoàng Văn Em', phone: '0945678901', address: '654 Nguyễn Trãi, Q7, TP.HCM',
-                    note: 'Đã mua 1 lần, cần chăm sóc', staffId: 5 }
+                    note: 'Đã mua 1 lần, cần chăm sóc', noteTime: '2026-07-18 14:20', staffId: 5 }
             ];
 
             const DEFAULT_ORDERS = [
@@ -1019,6 +1049,11 @@
                 return { date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5) };
             }
 
+            function getFullDateTime() {
+                const now = new Date();
+                return now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
+            }
+
             function formatDate(dateStr) {
                 if (!dateStr) return '';
                 return new Date(dateStr).toLocaleDateString('vi-VN');
@@ -1131,7 +1166,6 @@
                     });
 
                     if (response.ok) {
-                        // Cập nhật trạng thái sync nhưng không hiển thị toast
                         updateSyncStatus('synced', '🔄 Đã đồng bộ');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
                     }
@@ -1148,7 +1182,6 @@
                     syncInterval = null;
                 }
 
-                // Thiết lập sync mỗi 1 giây
                 syncInterval = setInterval(async () => {
                     if (currentUser && isNpointConnected && !isSyncing) {
                         isSyncing = true;
@@ -1160,7 +1193,7 @@
                             isSyncing = false;
                         }
                     }
-                }, 1000); // 1 giây
+                }, 1000);
             }
 
             async function pullFromNpoint() {
@@ -1186,7 +1219,6 @@
                         customers = data.customers || customers;
                         orders = data.orders || orders;
 
-                        // Cập nhật ID
                         if (products.length > 0) {
                             nextProductId = Math.max(...products.map(p => p.id)) + 1;
                         }
@@ -1264,7 +1296,7 @@
 
                 customerTableBody.innerHTML = '';
                 if (filteredCustomers.length === 0) {
-                    const colSpan = isAdmin() ? 7 : 6;
+                    const colSpan = isAdmin() ? 8 : 7;
                     customerTableBody.innerHTML =
                         `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Chưa có khách hàng nào</td></tr>`;
                     customerCount.textContent = '0';
@@ -1296,12 +1328,16 @@
                         `<td><span class="staff-badge">${staffName}</span></td>` :
                         '';
 
+                    const noteTimeDisplay = c.noteTime ? c.noteTime : '';
+                    const noteDisplay = c.note || '';
+
                     tr.innerHTML = `
                             <td style="text-align:center;">${index + 1}</td>
                             <td><strong>${c.name}</strong></td>
                             <td>${c.phone}</td>
                             <td style="max-width:200px;word-break:break-word;">${c.address}</td>
-                            <td class="note-cell" title="${c.note || ''}">${c.note || ''}</td>
+                            <td class="note-cell" title="${noteDisplay}">${noteDisplay}</td>
+                            <td class="note-time-cell">${noteTimeDisplay}</td>
                             ${staffCol}
                             <td>${actionsHtml}</td>
                         `;
@@ -1340,6 +1376,7 @@
                     phone: phone.trim(),
                     address: address.trim(),
                     note: note ? note.trim() : '',
+                    noteTime: note ? getFullDateTime() : '',
                     staffId: staffId || null
                 };
                 customers.push(newCustomer);
@@ -1364,10 +1401,18 @@
                     return false;
                 }
 
+                const noteChanged = note !== customer.note;
+
                 customer.name = name.trim();
                 customer.phone = phone.trim();
                 customer.address = address.trim();
                 customer.note = note ? note.trim() : '';
+
+                if (noteChanged && customer.note.trim() !== '') {
+                    customer.noteTime = getFullDateTime();
+                } else if (noteChanged && customer.note.trim() === '') {
+                    customer.noteTime = '';
+                }
 
                 if (isAdmin()) {
                     customer.staffId = staffId || null;
@@ -1440,6 +1485,7 @@
                         phone: phone,
                         address: address,
                         note: note || '',
+                        noteTime: note ? getFullDateTime() : '',
                         staffId: staffId
                     });
                     added++;
@@ -1726,7 +1772,6 @@
                         `<td><span class="staff-badge">${staffName}</span></td>` :
                         '';
 
-                    // Hiển thị ghi chú, nếu là staff và không phải đơn của mình thì ẩn
                     let noteDisplay = o.note || '';
                     if (isStaff() && o.staffId !== currentUser.id) {
                         noteDisplay = '---';
@@ -1874,7 +1919,6 @@
                 order.tracking = data.tracking.trim() || '';
                 order.status = data.status || order.status;
                 if (isAdmin() && data.staffId) order.staffId = parseInt(data.staffId);
-                // Ghi chú: chỉ admin mới được sửa
                 if (isAdmin() && data.note !== undefined) {
                     order.note = data.note.trim();
                 }
@@ -2135,7 +2179,6 @@
                     orderStaffId.value = order.staffId || '';
                 } else {
                     staffSelectorGroup.classList.add('hidden');
-                    // Nhân viên không được sửa ghi chú
                     orderNoteInput.disabled = true;
                     orderNoteInput.style.background = '#f1f5f9';
                 }
@@ -2188,7 +2231,6 @@
                 }
                 if (isStaff()) {
                     data.staffId = currentUser.id;
-                    // Nhân viên không được sửa ghi chú
                     if (id) {
                         const existingOrder = orders.find(o => o.id === parseInt(id));
                         if (existingOrder) {
@@ -2532,7 +2574,7 @@
                 updateSyncStatus('', 'Đã đăng xuất');
                 updateNpointStatus(false, 'Đã đăng xuất');
                 
-                // Hiển thị lại npoint config khi logout (sẽ bị ẩn khi login staff)
+                // Hiển thị lại npoint config khi logout
                 npointConfig.classList.remove('staff-hidden');
             }
 
@@ -2650,12 +2692,10 @@
             console.log('🛒 Hệ thống quản lý bán hàng');
             console.log('☁️ Tích hợp npoint.io để đồng bộ dữ liệu');
             console.log('📁 Bucket ID: ' + (npointBucketId || 'Chưa cấu hình'));
-            console.log('🔄 Tự động đồng bộ mỗi 1 giây (không hiển thị thông báo)');
-            console.log('👤 Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công');
-            console.log('👑 Admin có thể sửa/xóa tất cả khách hàng');
+            console.log('🔄 Tự động đồng bộ mỗi 1 giây');
+            console.log('👤 Nhân viên chỉ cần đăng nhập là dùng được, không cần quan tâm nPoint');
+            console.log('👑 Admin quản lý cấu hình nPoint');
             console.log('📋 Trạng thái: Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công');
-            console.log('🔒 Phần cấu hình nPoint bị ẩn đối với nhân viên');
-            console.log('📝 Ghi chú sản phẩm và đơn hàng: chỉ admin mới được chỉnh sửa');
         })();
     </script>
 </body>
