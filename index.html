@@ -166,7 +166,7 @@
         .product-header h3 .badge-count { background: #2563eb; color: white; font-size: 0.7rem; padding: 0.1rem 0.7rem; border-radius: 40px; margin-left: 6px; }
 
         .product-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
-        .product-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 400px; }
+        .product-table-container table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 500px; }
         .product-table-container thead { background: #eef2ff; }
         .product-table-container th { padding: 0.7rem 0.8rem; text-align: left; font-weight: 600; color: #1f2a41; border-bottom: 2px solid #d0d9e8; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
         .product-table-container td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e9edf4; vertical-align: middle; color: #0b1b33; }
@@ -177,6 +177,7 @@
         .product-table-container .action-buttons .btn-edit-product:hover { background: #eef2ff; }
         .product-table-container .action-buttons .btn-delete-product { color: #dc2626; }
         .product-table-container .action-buttons .btn-delete-product:hover { background: #fee2e2; }
+        .product-table-container .note-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; color: #4b5a6f; }
 
         .order-table-container { background: #f9fafc; border-radius: 1.8rem; padding: 1.5rem 1.8rem; border: 1px solid #eef2f8; overflow-x: auto; }
         .order-table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
@@ -190,7 +191,7 @@
         .add-order-btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .add-order-btn:hover { background: #1d4ed8; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1100px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1200px; }
         thead { background: #eef2ff; }
         th { padding: 0.7rem 0.8rem; text-align: left; font-weight: 600; color: #1f2a41; border-bottom: 2px solid #d0d9e8; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
         td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e9edf4; vertical-align: middle; color: #0b1b33; }
@@ -222,13 +223,15 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
 
-        .modal-box { background: white; border-radius: 2rem; padding: 2rem 2.5rem; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
+        .modal-box { background: white; border-radius: 2rem; padding: 2rem 2.5rem; max-width: 550px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
         .modal-box h2 { margin-bottom: 1.2rem; color: #0b1b33; font-size: 1.3rem; }
         .modal-box h2 i { color: #2563eb; }
         .modal-box .form-group { margin-bottom: 0.8rem; }
         .modal-box .form-group label { display: block; font-weight: 500; font-size: 0.8rem; color: #1f2a41; margin-bottom: 0.2rem; }
         .modal-box .form-group input, .modal-box .form-group select { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.9rem; transition: 0.2s; background: #fafcff; }
         .modal-box .form-group input:focus, .modal-box .form-group select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
+        .modal-box .form-group textarea { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 1.2rem; font-size: 0.85rem; transition: 0.2s; background: #fafcff; resize: vertical; min-height: 60px; font-family: 'Inter', sans-serif; }
+        .modal-box .form-group textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb15; }
         .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
         .modal-actions button { flex: 1; padding: 0.7rem; border: none; border-radius: 2rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .modal-actions .btn-primary { background: #2563eb; color: white; }
@@ -349,9 +352,9 @@
             .user-panel { gap: 0.8rem; }
             .filter-area { flex-direction: column; width: 100%; }
             .filter-area select { width: 100%; }
-            table { min-width: 1200px; }
-            .customer-table-container table { min-width: 600px; }
-            .product-table-container table { min-width: 400px; }
+            table { min-width: 1400px; }
+            .customer-table-container table { min-width: 700px; }
+            .product-table-container table { min-width: 600px; }
             .bulk-area .bulk-row { flex-direction: column; }
             .bulk-area textarea { width: 100%; }
             .bulk-area .bulk-options { width: 100%; }
@@ -432,6 +435,10 @@
             <div class="form-group">
                 <label>Tên sản phẩm *</label>
                 <input type="text" id="productNameInput" placeholder="VD: Áo thun basic" />
+            </div>
+            <div class="form-group">
+                <label>Ghi chú</label>
+                <textarea id="productNoteInput" placeholder="Ghi chú về sản phẩm..." rows="2"></textarea>
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" id="closeProductModalBtn">Hủy</button>
@@ -530,6 +537,12 @@
                     <!-- render từ js -->
                 </select>
             </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-sticky-note"></i> Ghi chú đơn hàng</label>
+                <textarea id="orderNoteInput" placeholder="Ghi chú về đơn hàng..." rows="2"></textarea>
+            </div>
+
             <div class="modal-actions">
                 <button class="btn-secondary" id="closeOrderModalBtn">Hủy</button>
                 <button class="btn-primary" id="saveOrderBtn"><i class="fas fa-save"></i> Lưu</button>
@@ -687,6 +700,7 @@
                             <tr>
                                 <th>STT</th>
                                 <th>Tên sản phẩm</th>
+                                <th>Ghi chú</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -696,9 +710,11 @@
                     </table>
                 </div>
                 <div class="format-hint" style="margin-top:0.8rem;">
-                    <i class="fas fa-info-circle"></i> Quản trị quản lý tên sản phẩm (không quản lý giá)
+                    <i class="fas fa-info-circle"></i> Quản trị quản lý tên sản phẩm và ghi chú (không quản lý giá)
                     <br />
                     <i class="fas fa-info-circle"></i> Giá sản phẩm được nhập trực tiếp khi tạo đơn hàng
+                    <br />
+                    <i class="fas fa-sticky-note"></i> Ghi chú sản phẩm: chỉ quản trị mới có quyền chỉnh sửa
                 </div>
             </div>
 
@@ -729,6 +745,7 @@
                                     <th>Mã vận đơn</th>
                                     <th>NV phụ trách</th>
                                     <th>Trạng thái</th>
+                                    <th>Ghi chú</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
@@ -742,6 +759,8 @@
                         <i class="fas fa-info-circle"></i> Nhân viên chỉ xem đơn của mình · Admin xem tất cả
                         <br />
                         <i class="fas fa-tag"></i> <b>Trạng thái:</b> Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công
+                        <br />
+                        <i class="fas fa-sticky-note"></i> Ghi chú đơn hàng: chỉ quản trị mới có quyền chỉnh sửa
                     </div>
                 </div>
             </div>
@@ -750,11 +769,13 @@
         <div class="footer-note">
             <i class="fas fa-user-tag"></i> <b>Phân phối:</b> Quản trị phân công khách hàng cho Sale
             <br />
-            <i class="fas fa-boxes"></i> <b>Sản phẩm:</b> Quản lý tên sản phẩm, giá nhập tay khi tạo đơn
+            <i class="fas fa-boxes"></i> <b>Sản phẩm:</b> Quản lý tên sản phẩm + ghi chú, giá nhập tay khi tạo đơn
             <br />
             <i class="fas fa-tag"></i> <b>Trạng thái:</b> Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công
             <br />
             <i class="fas fa-edit"></i> <b>Quyền sửa:</b> Nhân viên sửa được thông tin khách hàng được phân công
+            <br />
+            <i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
         </div>
     </div>
 
@@ -791,11 +812,11 @@
             ];
 
             const DEFAULT_PRODUCTS = [
-                { id: 1, name: 'Áo thun basic' },
-                { id: 2, name: 'Quần jean nam' },
-                { id: 3, name: 'Giày thể thao' },
-                { id: 4, name: 'Mũ lưỡi trai' },
-                { id: 5, name: 'Áo khoác gió' }
+                { id: 1, name: 'Áo thun basic', note: 'Hàng mới về' },
+                { id: 2, name: 'Quần jean nam', note: 'Size 28-36' },
+                { id: 3, name: 'Giày thể thao', note: 'Hàng nhập khẩu' },
+                { id: 4, name: 'Mũ lưỡi trai', note: 'Nhiều màu' },
+                { id: 5, name: 'Áo khoác gió', note: 'Chống nước' }
             ];
 
             const DEFAULT_CUSTOMERS = [
@@ -812,11 +833,11 @@
             ];
 
             const DEFAULT_ORDERS = [
-                { id: 1, date: '2026-07-18', time: '09:30', name: 'Nguyễn Văn An', phone: '0901234567', address: '123 Lê Lợi, Q1, TP.HCM', product: 'Áo thun basic', quantity: 2, price: 240000, tracking: 'VN123456789', status: 'Giao thành công', staffId: 2 },
-                { id: 2, date: '2026-07-18', time: '14:15', name: 'Trần Thị Bích', phone: '0912345678', address: '456 Nguyễn Huệ, Q3, TP.HCM', product: 'Quần jean nam', quantity: 1, price: 520000, tracking: 'VN987654321', status: 'Đang giao hàng', staffId: 3 },
-                { id: 3, date: '2026-07-17', time: '10:00', name: 'Lê Văn Cường', phone: '0923456789', address: '789 Cách Mạng Tháng 8, Q10, TP.HCM', product: 'Giày thể thao', quantity: 1, price: 890000, tracking: 'VN456789123', status: 'Sale xử lý', staffId: 2 },
-                { id: 4, date: '2026-07-17', time: '16:45', name: 'Phạm Thị Dung', phone: '0934567890', address: '321 Trần Hưng Đạo, Q5, TP.HCM', product: 'Mũ lưỡi trai', quantity: 3, price: 130000, tracking: 'VN789123456', status: 'Chờ xác nhận', staffId: 4 },
-                { id: 5, date: '2026-07-16', time: '08:20', name: 'Hoàng Văn Em', phone: '0945678901', address: '654 Nguyễn Trãi, Q7, TP.HCM', product: 'Áo khoác gió', quantity: 1, price: 450000, tracking: 'VN321654987', status: 'Đã hủy', staffId: 5 }
+                { id: 1, date: '2026-07-18', time: '09:30', name: 'Nguyễn Văn An', phone: '0901234567', address: '123 Lê Lợi, Q1, TP.HCM', product: 'Áo thun basic', quantity: 2, price: 240000, tracking: 'VN123456789', status: 'Giao thành công', staffId: 2, note: 'Giao trước 10h' },
+                { id: 2, date: '2026-07-18', time: '14:15', name: 'Trần Thị Bích', phone: '0912345678', address: '456 Nguyễn Huệ, Q3, TP.HCM', product: 'Quần jean nam', quantity: 1, price: 520000, tracking: 'VN987654321', status: 'Đang giao hàng', staffId: 3, note: '' },
+                { id: 3, date: '2026-07-17', time: '10:00', name: 'Lê Văn Cường', phone: '0923456789', address: '789 Cách Mạng Tháng 8, Q10, TP.HCM', product: 'Giày thể thao', quantity: 1, price: 890000, tracking: 'VN456789123', status: 'Sale xử lý', staffId: 2, note: 'Khách đã thanh toán 50%' },
+                { id: 4, date: '2026-07-17', time: '16:45', name: 'Phạm Thị Dung', phone: '0934567890', address: '321 Trần Hưng Đạo, Q5, TP.HCM', product: 'Mũ lưỡi trai', quantity: 3, price: 130000, tracking: 'VN789123456', status: 'Chờ xác nhận', staffId: 4, note: '' },
+                { id: 5, date: '2026-07-16', time: '08:20', name: 'Hoàng Văn Em', phone: '0945678901', address: '654 Nguyễn Trãi, Q7, TP.HCM', product: 'Áo khoác gió', quantity: 1, price: 450000, tracking: 'VN321654987', status: 'Đã hủy', staffId: 5, note: 'Hủy do khách đổi ý' }
             ];
 
             let users = loadData(STORAGE_KEYS.USERS, DEFAULT_USERS);
@@ -900,6 +921,7 @@
             const saveProductBtn = document.getElementById('saveProductBtn');
             const editProductId = document.getElementById('editProductId');
             const productNameInput = document.getElementById('productNameInput');
+            const productNoteInput = document.getElementById('productNoteInput');
 
             // Order
             const orderBody = document.getElementById('orderBody');
@@ -913,6 +935,7 @@
             const orderPhone = document.getElementById('orderPhone');
             const orderAddress = document.getElementById('orderAddress');
             const orderStatus = document.getElementById('orderStatus');
+            const orderNoteInput = document.getElementById('orderNoteInput');
 
             // Customer search
             const customerSearchInput = document.getElementById('customerSearchInput');
@@ -1539,7 +1562,7 @@
                 productTableBody.innerHTML = '';
                 if (products.length === 0) {
                     productTableBody.innerHTML =
-                        `<tr><td colspan="3" style="text-align:center;padding:2rem;color:#6b7b93;">Chưa có sản phẩm nào</td></tr>`;
+                        `<tr><td colspan="4" style="text-align:center;padding:2rem;color:#6b7b93;">Chưa có sản phẩm nào</td></tr>`;
                     productCount.textContent = '0';
                     return;
                 }
@@ -1556,11 +1579,14 @@
                                     <button class="btn-delete-product" data-id="${p.id}" title="Xóa"><i class="fas fa-trash"></i></button>
                                 </div>
                             `;
+                    } else {
+                        actionsHtml = `<span style="font-size:0.7rem;color:#6b7b93;">Chỉ xem</span>`;
                     }
 
                     tr.innerHTML = `
                             <td style="text-align:center;">${index + 1}</td>
                             <td><strong>${p.name}</strong></td>
+                            <td class="note-cell" title="${p.note || ''}">${p.note || ''}</td>
                             <td>${actionsHtml}</td>
                         `;
                     productTableBody.appendChild(tr);
@@ -1584,7 +1610,7 @@
                 renderProductSelect();
             }
 
-            function addProduct(name) {
+            function addProduct(name, note) {
                 if (!name) {
                     showToast('Vui lòng nhập tên sản phẩm!', 'error');
                     return false;
@@ -1593,14 +1619,14 @@
                     showToast('Tên sản phẩm đã tồn tại!', 'error');
                     return false;
                 }
-                products.push({ id: nextProductId++, name: name.trim() });
+                products.push({ id: nextProductId++, name: name.trim(), note: note ? note.trim() : '' });
                 saveAllData();
                 renderProducts();
                 showToast(`Đã thêm sản phẩm "${name}"`, 'success');
                 return true;
             }
 
-            function updateProduct(id, name) {
+            function updateProduct(id, name, note) {
                 const product = products.find(p => p.id === id);
                 if (!product) { showToast('Sản phẩm không tồn tại!', 'error'); return false; }
                 if (products.some(p => p.name.toLowerCase() === name.toLowerCase() && p.id !== id)) {
@@ -1608,6 +1634,7 @@
                     return false;
                 }
                 product.name = name.trim();
+                product.note = note ? note.trim() : '';
                 saveAllData();
                 renderProducts();
                 showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
@@ -1661,7 +1688,7 @@
 
                 orderBody.innerHTML = '';
                 if (filteredOrders.length === 0) {
-                    const colSpan = isAdmin() ? 12 : 11;
+                    const colSpan = isAdmin() ? 13 : 12;
                     orderBody.innerHTML =
                         `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Không có đơn hàng nào</td></tr>`;
                     orderCount.textContent = '0';
@@ -1699,6 +1726,12 @@
                         `<td><span class="staff-badge">${staffName}</span></td>` :
                         '';
 
+                    // Hiển thị ghi chú, nếu là staff và không phải đơn của mình thì ẩn
+                    let noteDisplay = o.note || '';
+                    if (isStaff() && o.staffId !== currentUser.id) {
+                        noteDisplay = '---';
+                    }
+
                     tr.innerHTML = `
                             <td>${formatDate(o.date)}</td>
                             <td><span class="time-badge"><i class="fas fa-clock"></i> ${o.time || '--:--'}</span></td>
@@ -1711,6 +1744,7 @@
                             <td style="font-size:0.75rem;">${o.tracking || '---'}</td>
                             ${staffCol}
                             <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+                            <td class="note-cell" title="${noteDisplay}" style="max-width:120px;">${noteDisplay}</td>
                             <td>${actionsHtml}</td>
                         `;
                     orderBody.appendChild(tr);
@@ -1813,7 +1847,8 @@
                     price: parseInt(data.price) || 0,
                     tracking: data.tracking.trim() || '',
                     status: status,
-                    staffId: staffId || null
+                    staffId: staffId || null,
+                    note: data.note ? data.note.trim() : ''
                 });
                 saveAllData();
                 renderOrders();
@@ -1839,6 +1874,10 @@
                 order.tracking = data.tracking.trim() || '';
                 order.status = data.status || order.status;
                 if (isAdmin() && data.staffId) order.staffId = parseInt(data.staffId);
+                // Ghi chú: chỉ admin mới được sửa
+                if (isAdmin() && data.note !== undefined) {
+                    order.note = data.note.trim();
+                }
                 saveAllData();
                 renderOrders();
                 renderStaffFilter();
@@ -1982,6 +2021,7 @@
                 editProductId.value = '';
                 productModalTitle.innerHTML = '<i class="fas fa-box"></i> Thêm sản phẩm';
                 productNameInput.value = '';
+                productNoteInput.value = '';
                 productModal.classList.add('active');
             }
 
@@ -1995,6 +2035,7 @@
                 editProductId.value = id;
                 productModalTitle.innerHTML = '<i class="fas fa-edit"></i> Sửa sản phẩm';
                 productNameInput.value = product.name;
+                productNoteInput.value = product.note || '';
                 productModal.classList.add('active');
             }
 
@@ -2003,6 +2044,7 @@
             function saveProduct() {
                 const id = editProductId.value;
                 const name = productNameInput.value.trim();
+                const note = productNoteInput.value.trim();
 
                 if (!name) {
                     showToast('Vui lòng nhập tên sản phẩm!', 'error');
@@ -2010,9 +2052,9 @@
                 }
 
                 if (id) {
-                    if (updateProduct(parseInt(id), name)) closeProductModal();
+                    if (updateProduct(parseInt(id), name, note)) closeProductModal();
                 } else {
-                    if (addProduct(name)) closeProductModal();
+                    if (addProduct(name, note)) closeProductModal();
                 }
             }
 
@@ -2035,6 +2077,7 @@
                 orderQuantity.value = '1';
                 orderTracking.value = '';
                 orderStatus.value = 'Chờ xác nhận';
+                orderNoteInput.value = '';
 
                 if (isAdmin()) {
                     staffSelectorGroup.classList.remove('hidden');
@@ -2084,6 +2127,7 @@
                 orderQuantity.value = order.quantity;
                 orderTracking.value = order.tracking || '';
                 orderStatus.value = order.status || 'Chờ xác nhận';
+                orderNoteInput.value = order.note || '';
 
                 if (isAdmin()) {
                     staffSelectorGroup.classList.remove('hidden');
@@ -2091,6 +2135,9 @@
                     orderStaffId.value = order.staffId || '';
                 } else {
                     staffSelectorGroup.classList.add('hidden');
+                    // Nhân viên không được sửa ghi chú
+                    orderNoteInput.disabled = true;
+                    orderNoteInput.style.background = '#f1f5f9';
                 }
                 orderModal.classList.add('active');
             }
@@ -2099,6 +2146,8 @@
                 if (window.timeInterval) { clearInterval(window.timeInterval);
                     window.timeInterval = null; }
                 orderModal.classList.remove('active');
+                orderNoteInput.disabled = false;
+                orderNoteInput.style.background = '#fafcff';
             }
 
             function saveOrder() {
@@ -2125,7 +2174,8 @@
                     price: orderPrice.value,
                     tracking: orderTracking.value,
                     status: orderStatus.value,
-                    staffId: orderStaffId.value || null
+                    staffId: orderStaffId.value || null,
+                    note: orderNoteInput.value
                 };
 
                 if (!data.name || !data.phone || !data.address || !data.product) {
@@ -2136,7 +2186,16 @@
                     showToast('Vui lòng nhập giá hợp lệ!', 'error');
                     return;
                 }
-                if (isStaff()) data.staffId = currentUser.id;
+                if (isStaff()) {
+                    data.staffId = currentUser.id;
+                    // Nhân viên không được sửa ghi chú
+                    if (id) {
+                        const existingOrder = orders.find(o => o.id === parseInt(id));
+                        if (existingOrder) {
+                            data.note = existingOrder.note || '';
+                        }
+                    }
+                }
 
                 if (id) {
                     if (updateOrder(parseInt(id), data)) closeOrderModal();
@@ -2265,13 +2324,14 @@
                         'Giá': o.price,
                         'Mã vận đơn': o.tracking || '',
                         'NV phụ trách': getStaffName(o.staffId),
-                        'Trạng thái': o.status
+                        'Trạng thái': o.status,
+                        'Ghi chú': o.note || ''
                     }));
 
                     const ws = XLSX.utils.json_to_sheet(excelData);
                     ws['!cols'] = [
                         { wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 30 },
-                        { wch: 20 }, { wch: 8 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }
+                        { wch: 20 }, { wch: 8 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
                     ];
 
                     const wb = XLSX.utils.book_new();
@@ -2329,6 +2389,7 @@
                                 const tracking = row['Mã vận đơn'] || row['Tracking'] || '';
                                 const staffName = row['NV phụ trách'] || row['Staff'] || '';
                                 const status = row['Trạng thái'] || row['Status'] || 'Chờ xác nhận';
+                                const note = row['Ghi chú'] || row['Note'] || '';
 
                                 if (!name || !phone || !address || !product) { errorCount++; return; }
 
@@ -2356,7 +2417,8 @@
                                     price: price || 0,
                                     tracking: tracking.trim() || '',
                                     status: finalStatus,
-                                    staffId: staffId
+                                    staffId: staffId,
+                                    note: note.trim() || ''
                                 });
                                 importedCount++;
                             });
@@ -2593,6 +2655,7 @@
             console.log('👑 Admin có thể sửa/xóa tất cả khách hàng');
             console.log('📋 Trạng thái: Chờ xác nhận → Sale xử lý → Đang giao hàng → Giao thành công');
             console.log('🔒 Phần cấu hình nPoint bị ẩn đối với nhân viên');
+            console.log('📝 Ghi chú sản phẩm và đơn hàng: chỉ admin mới được chỉnh sửa');
         })();
     </script>
 </body>
