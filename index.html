@@ -1791,7 +1791,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
                     <span id="userNameDisplay" style="font-weight:500;color:#1f2a41;">admin@shop</span>
-                    <span class="sync-status live" id="syncStatus">🔄 Đang đồng bộ...</span>
+                    <span class="sync-status synced" id="syncStatus">✅ Đã đồng bộ</span>
                     <button class="change-password-btn" id="changePasswordBtn"><i class="fas fa-key"></i> Đổi mật khẩu</button>
                     <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
                 </div>
@@ -1909,9 +1909,9 @@
                     <i class="fas fa-info-circle"></i> Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công
                     <br /><i class="fas fa-info-circle"></i> Quản trị có thể sửa/xóa tất cả khách hàng
                     <br /><i class="fas fa-clock"></i> Thời gian ghi chú được tự động cập nhật khi nhân viên sửa ghi chú
-                    <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ real-time <b>mỗi 1 giây</b>
+                    <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ ngay khi có thay đổi
                     <br /><i class="fas fa-undo"></i> Có thể hoàn tác thao tác xóa trong vòng <b>5 giây</b>
-                    <br /><i class="fas fa-shield-alt"></i> <b>Đảm bảo:</b> Ghi chú không bị mất khi tải dữ liệu mới
+                    <br /><i class="fas fa-shield-alt"></i> <b>Last write wins:</b> Ai thao tác sau sẽ là dữ liệu cuối cùng
                 </div>
             </div>
 
@@ -1971,9 +1971,9 @@
             <br /><i class="fas fa-edit"></i> <b>Quyền sửa:</b> Nhân viên sửa được thông tin khách hàng được phân công
             <br /><i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
             <br /><i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
-            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ real-time
+            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ ngay khi có thay đổi
             <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
-            <br /><i class="fas fa-shield-alt"></i> <b>Bảo vệ:</b> Không mất dữ liệu khi tải mới
+            <br /><i class="fas fa-shield-alt"></i> <b>Last write wins:</b> Ai thao tác sau sẽ là dữ liệu cuối cùng
         </div>
     </div>
 
@@ -1992,8 +1992,8 @@
 
     <script>
         // ============================================================
-        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG - REAL-TIME
-        //  Bảo vệ dữ liệu - Không mất ghi chú khi tải mới
+        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG
+        //  Đồng bộ khi có thay đổi - Last write wins
         // ============================================================
 
         (function() {
@@ -2001,11 +2001,10 @@
 
             // ========== CẤU HÌNH ==========
             const CONFIG = {
-                PULL_INTERVAL: 1000,
-                DEBOUNCE_DELAY: 200,
                 MAX_RETRY: 3,
                 RETRY_DELAY: 1000,
-                UNDO_DURATION: 5000
+                UNDO_DURATION: 5000,
+                SYNC_DELAY: 500 // Đợi 500ms sau khi thay đổi để push
             };
 
             // ========== STORAGE KEYS ==========
@@ -2087,16 +2086,10 @@
             let npointBucketId = loadData(STORAGE_KEYS.NPOINT_BUCKET, '');
             let isNpointConnected = false;
             let isSyncing = false;
-            let syncInterval = null;
-            let pullInterval = null;
-            let isPulling = false;
             let isDataLoaded = false;
             let dataVersion = 0;
             let lastDataHash = '';
-
-            // ===== BIẾN BẢO VỆ =====
-            let isUpdating = false; // Đánh dấu đang cập nhật
-            let updateQueue = []; // Hàng đợi cập nhật
+            let syncTimeout = null;
 
             let currentPage = 1;
             let pageSize = 50;
@@ -2444,8 +2437,6 @@
                         loginSyncBadge.textContent = '✅ Đã sẵn sàng';
                     } else if (status === 'error') {
                         loginSyncBadge.textContent = '❌ Không thể tải dữ liệu';
-                    } else if (status === 'live') {
-                        loginSyncBadge.textContent = '🔄 Đang đồng bộ...';
                     } else {
                         loginSyncBadge.textContent = message || '🔄 Đang tải dữ liệu...';
                     }
@@ -2503,6 +2494,8 @@
                 }
 
                 try {
+                    updateSyncStatus('syncing', '🔄 Đang đồng bộ...');
+
                     const allData = {
                         users: users,
                         products: products,
@@ -2522,7 +2515,7 @@
                     if (response.ok) {
                         dataVersion++;
                         localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
-                        updateSyncStatus('live', '🔄 Đã đồng bộ');
+                        updateSyncStatus('synced', '✅ Đã đồng bộ');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
                         return true;
                     } else {
@@ -2541,17 +2534,11 @@
                 }
             }
 
-            // ===== PULL TỪ ĐÁM MÂY - CÓ BẢO VỆ =====
+            // ===== PULL TỪ ĐÁM MÂY =====
             async function pullFromNpoint(showLoadingIndicator = true) {
                 const url = getNpointApiUrl();
                 if (!url) {
                     showToast('Vui lòng kết nối trước!', 'error');
-                    return false;
-                }
-
-                // ===== KIỂM TRA ĐANG CẬP NHẬT =====
-                if (isUpdating) {
-                    showToast('⏳ Đang cập nhật dữ liệu, vui lòng đợi!', 'info');
                     return false;
                 }
 
@@ -2571,9 +2558,6 @@
                     const data = await response.json();
 
                     if (data && data.users) {
-                        const oldCustomers = [...customers];
-                        const oldUsers = [...users];
-
                         users = data.users;
                         products = data.products || products;
                         customers = data.customers || customers;
@@ -2587,19 +2571,9 @@
                         lastDataHash = getDataHash();
                         isDataLoaded = true;
 
-                        updateSyncStatus('live', '🔄 Đã tải thành công');
+                        updateSyncStatus('synced', '✅ Đã tải thành công');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
-                        updateLoginSyncStatus('live', '🔄 Đang đồng bộ');
-
-                        // Kiểm tra khách hàng mới
-                        if (isStaff() && showLoadingIndicator) {
-                            const newCustomers = customers.filter(c => c.staffId === currentUser.id);
-                            const oldCustomerIds = oldCustomers.filter(c => c.staffId === currentUser.id).map(c => c.id);
-                            const hasNew = newCustomers.some(c => !oldCustomerIds.includes(c.id));
-                            if (hasNew) {
-                                showToast('🔄 Bạn có khách hàng mới được phân công!', 'success');
-                            }
-                        }
+                        updateLoginSyncStatus('synced', '✅ Đã sẵn sàng');
 
                         if (showLoadingIndicator) {
                             showToast(`✅ Đã tải dữ liệu thành công (${orders.length} đơn hàng)`, 'success');
@@ -2620,7 +2594,7 @@
                             lastDataHash = getDataHash();
                             await pushToNpoint();
                             renderAll();
-                            updateSyncStatus('live', '🔄 Đã đồng bộ');
+                            updateSyncStatus('synced', '✅ Đã đồng bộ');
                             showToast('Đã khởi tạo dữ liệu mặc định!', 'success');
                             return true;
                         }
@@ -2654,98 +2628,15 @@
                 }
             }
 
-            // ===== SILENT PULL - CÓ BẢO VỆ =====
-            async function silentPullFromNpoint() {
-                if (!currentUser || !isDataLoaded) return;
-
-                // ===== KHÔNG PULL KHI ĐANG CẬP NHẬT =====
-                if (isUpdating) {
-                    console.log('⏳ Đang cập nhật, bỏ qua pull');
-                    return;
+            // ===== SYNC SAU KHI THAY ĐỔI =====
+            function scheduleSync() {
+                if (syncTimeout) {
+                    clearTimeout(syncTimeout);
                 }
-
-                const url = getNpointApiUrl();
-                if (!url) return;
-
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) return;
-
-                    const data = await response.json();
-                    if (!data || !data.users) return;
-
-                    // Kiểm tra thời gian
-                    if (data._updatedAt) {
-                        const newTime = new Date(data._updatedAt).getTime();
-                        const oldTime = parseInt(localStorage.getItem(STORAGE_KEYS.LAST_UPDATE) || '0');
-                        if (newTime <= oldTime) return;
-                    }
-
-                    // Kiểm tra version
-                    if (data._version && data._version <= dataVersion) return;
-
-                    // Kiểm tra hash
-                    const newHash = JSON.stringify({ users: data.users, products: data.products, customers: data
-                            .customers, orders: data.orders });
-                    if (newHash === lastDataHash) return;
-
-                    const oldCustomers = [...customers];
-
-                    // Cập nhật dữ liệu
-                    users = data.users;
-                    products = data.products || products;
-                    customers = data.customers || customers;
-                    orders = data.orders || orders;
-
-                    if (products.length > 0) nextProductId = Math.max(...products.map(p => p.id)) + 1;
-                    if (customers.length > 0) nextCustomerId = Math.max(...customers.map(c => c.id)) + 1;
-                    if (orders.length > 0) nextOrderId = Math.max(...orders.map(o => o.id)) + 1;
-
-                    dataVersion = data._version || dataVersion;
-                    lastDataHash = newHash;
-                    localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
-
-                    // Kiểm tra khách hàng mới cho staff
-                    if (isStaff()) {
-                        const newCustomers = customers.filter(c => c.staffId === currentUser.id);
-                        const oldCustomerIds = oldCustomers.filter(c => c.staffId === currentUser.id).map(c => c.id);
-                        const hasNew = newCustomers.some(c => !oldCustomerIds.includes(c.id));
-                        if (hasNew) {
-                            showToast('🔄 Bạn có khách hàng mới được phân công!', 'success');
-                        }
-                    }
-
-                    renderAll();
-                    updateSyncStatus('live', '🔄 Đã cập nhật dữ liệu');
-                    updateNpointStatus(true, '✅ Đã đồng bộ');
-                } catch (error) {
-                    console.error('Lỗi silent pull:', error);
-                }
-            }
-
-            // ===== AUTO PULL/PUSH =====
-            function startAutoPull() {
-                if (pullInterval) { clearInterval(pullInterval);
-                    pullInterval = null; }
-                pullInterval = setInterval(async () => {
-                    if (currentUser && isNpointConnected && !isPulling && isDataLoaded) {
-                        isPulling = true;
-                        try { await silentPullFromNpoint(); } catch (e) { console.error('Lỗi pull:', e); }
-                        finally { isPulling = false; }
-                    }
-                }, CONFIG.PULL_INTERVAL);
-            }
-
-            function startAutoSync() {
-                if (syncInterval) { clearInterval(syncInterval);
-                    syncInterval = null; }
-                syncInterval = setInterval(async () => {
-                    if (currentUser && isNpointConnected && !isSyncing && isDataLoaded) {
-                        isSyncing = true;
-                        try { await pushToNpoint(); } catch (e) { console.error('Lỗi sync:', e); }
-                        finally { isSyncing = false; }
-                    }
-                }, CONFIG.PULL_INTERVAL);
+                syncTimeout = setTimeout(async () => {
+                    syncTimeout = null;
+                    await pushToNpoint();
+                }, CONFIG.SYNC_DELAY);
             }
 
             // ===== KẾT NỐI =====
@@ -2773,8 +2664,6 @@
                         showToast('Kết nối thành công!', 'success');
 
                         await pullFromNpoint(true);
-                        startAutoSync();
-                        startAutoPull();
 
                         if (currentUser) {
                             renderAll();
@@ -2811,8 +2700,6 @@
                         updateNpointStatus(true, '✅ Đã kết nối');
 
                         await pullFromNpoint(false);
-                        startAutoSync();
-                        startAutoPull();
 
                         if (currentUser) {
                             renderAll();
@@ -3001,7 +2888,7 @@
                 renderCustomerPage();
             }
 
-            // ========== CRUD CUSTOMER - CÓ BẢO VỆ ==========
+            // ========== CRUD CUSTOMER ==========
             async function addCustomer(name, phone, address, note, staffId) {
                 if (!name || !phone || !address) {
                     showToast('Vui lòng nhập đầy đủ: Tên, SĐT, Địa chỉ!', 'error');
@@ -3011,9 +2898,6 @@
                     showToast('Số điện thoại đã tồn tại!', 'error');
                     return false;
                 }
-
-                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
-                isUpdating = true;
 
                 const newCustomer = {
                     id: nextCustomerId++,
@@ -3026,24 +2910,18 @@
                 };
                 customers.push(newCustomer);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
+                // Render ngay (optimistic UI)
+                renderCustomers();
+                renderStaffCustomerFilter();
+                renderCustomerSelect('');
 
-                if (success) {
-                    renderCustomers();
-                    renderStaffCustomerFilter();
-                    renderCustomerSelect('');
-                    showToast(`Đã thêm khách hàng "${name}"`, 'success');
-                    return true;
-                } else {
-                    customers.pop();
-                    nextCustomerId--;
-                    showToast('Thêm thất bại!', 'error');
-                    return false;
-                }
+                // Đồng bộ lên cloud
+                scheduleSync();
+                showToast(`Đã thêm khách hàng "${name}"`, 'success');
+                return true;
             }
 
-            // ===== UPDATE CUSTOMER - CÓ BẢO VỆ =====
+            // ===== UPDATE CUSTOMER =====
             async function updateCustomer(id, name, phone, address, note, staffId) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
@@ -3056,10 +2934,6 @@
                     return false;
                 }
 
-                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
-                isUpdating = true;
-
-                const oldData = { ...customer };
                 const noteChanged = note !== customer.note;
 
                 customer.name = name.trim();
@@ -3075,21 +2949,15 @@
                     customer.staffId = staffId || null;
                 }
 
-                const success = await pushToNpoint();
-                isUpdating = false;
+                // Render ngay (optimistic UI)
+                renderCustomers();
+                renderStaffCustomerFilter();
+                renderCustomerSelect('');
 
-                if (success) {
-                    renderCustomers();
-                    renderStaffCustomerFilter();
-                    renderCustomerSelect('');
-                    showToast(`Đã cập nhật khách hàng "${name}"`, 'success');
-                    return true;
-                } else {
-                    Object.assign(customer, oldData);
-                    renderCustomers();
-                    showToast('Cập nhật thất bại!', 'error');
-                    return false;
-                }
+                // Đồng bộ lên cloud
+                scheduleSync();
+                showToast(`Đã cập nhật khách hàng "${name}"`, 'success');
+                return true;
             }
 
             async function deleteCustomer(id) {
@@ -3103,24 +2971,16 @@
 
                 addToUndo('delete_customer', { ...customer }, customer.name);
 
-                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
-                isUpdating = true;
-
                 customers = customers.filter(c => c.id !== id);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
+                // Render ngay (optimistic UI)
+                renderCustomers();
+                renderStaffCustomerFilter();
+                renderCustomerSelect('');
 
-                if (success) {
-                    renderCustomers();
-                    renderStaffCustomerFilter();
-                    renderCustomerSelect('');
-                    showToast(`🗑️ Đã xóa khách hàng "${customer.name}"`, 'info');
-                } else {
-                    customers.push(customer);
-                    undoStack.pop();
-                    showToast('❌ Xóa thất bại!', 'error');
-                }
+                // Đồng bộ lên cloud
+                scheduleSync();
+                showToast(`🗑️ Đã xóa khách hàng "${customer.name}"`, 'info');
             }
 
             // ========== BULK ADD ==========
@@ -3227,26 +3087,18 @@
                     return;
                 }
 
-                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
-                isUpdating = true;
-
                 customers.push(...newCustomers);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
+                // Render ngay (optimistic UI)
+                renderCustomers();
+                renderStaffCustomerFilter();
+                renderCustomerSelect('');
+                bulkCustomerInput.value = '';
 
-                if (success) {
-                    renderCustomers();
-                    renderStaffCustomerFilter();
-                    renderCustomerSelect('');
-                    bulkCustomerInput.value = '';
-                    const staffName = staffId ? getStaffName(staffId) : 'chưa phân công';
-                    showToast(`✅ Đã phân phối ${added} khách hàng cho ${staffName}. ${errors} dòng bị bỏ qua.`, 'success');
-                } else {
-                    customers = customers.slice(0, -newCustomers.length);
-                    nextCustomerId -= newCustomers.length;
-                    showToast('Thêm hàng loạt thất bại!', 'error');
-                }
+                // Đồng bộ lên cloud
+                scheduleSync();
+                const staffName = staffId ? getStaffName(staffId) : 'chưa phân công';
+                showToast(`✅ Đã phân phối ${added} khách hàng cho ${staffName}. ${errors} dòng bị bỏ qua.`, 'success');
             }
 
             // ========== CUSTOMER SELECT ==========
@@ -3350,24 +3202,13 @@
                     showToast('Tên sản phẩm đã tồn tại!', 'error');
                     return false;
                 }
-
-                isUpdating = true;
                 const newProduct = { id: nextProductId++, name: name.trim(), note: note ? note.trim() : '' };
                 products.push(newProduct);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderProducts();
-                    showToast(`Đã thêm sản phẩm "${name}"`, 'success');
-                    return true;
-                } else {
-                    products.pop();
-                    nextProductId--;
-                    showToast('Thêm thất bại!', 'error');
-                    return false;
-                }
+                renderProducts();
+                scheduleSync();
+                showToast(`Đã thêm sản phẩm "${name}"`, 'success');
+                return true;
             }
 
             async function updateProduct(id, name, note) {
@@ -3377,24 +3218,13 @@
                     showToast('Tên sản phẩm đã tồn tại!', 'error');
                     return false;
                 }
-
-                isUpdating = true;
-                const oldData = { ...product };
                 product.name = name.trim();
                 product.note = note ? note.trim() : '';
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderProducts();
-                    showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
-                    return true;
-                } else {
-                    Object.assign(product, oldData);
-                    showToast('Cập nhật thất bại!', 'error');
-                    return false;
-                }
+                renderProducts();
+                scheduleSync();
+                showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
+                return true;
             }
 
             async function deleteProduct(id) {
@@ -3408,20 +3238,11 @@
 
                 addToUndo('delete_product', { ...product }, product.name);
 
-                isUpdating = true;
                 products = products.filter(p => p.id !== id);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderProducts();
-                    showToast(`🗑️ Đã xóa sản phẩm "${product.name}"`, 'info');
-                } else {
-                    products.push(product);
-                    undoStack.pop();
-                    showToast('❌ Xóa thất bại!', 'error');
-                }
+                renderProducts();
+                scheduleSync();
+                showToast(`🗑️ Đã xóa sản phẩm "${product.name}"`, 'info');
             }
 
             function renderProductSelect() {
@@ -3526,7 +3347,6 @@
                 const now = getCurrentDateTime();
                 const status = data.status || 'Chờ xác nhận';
 
-                isUpdating = true;
                 const newOrder = {
                     id: nextOrderId++,
                     date: now.date,
@@ -3544,21 +3364,12 @@
                 };
                 orders.push(newOrder);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderOrders();
-                    renderStaffFilter();
-                    renderStaff();
-                    showToast(`✅ Đã thêm đơn hàng với trạng thái "${status}"`, 'success');
-                    return true;
-                } else {
-                    orders.pop();
-                    nextOrderId--;
-                    showToast('Thêm thất bại!', 'error');
-                    return false;
-                }
+                renderOrders();
+                renderStaffFilter();
+                renderStaff();
+                scheduleSync();
+                showToast(`✅ Đã thêm đơn hàng với trạng thái "${status}"`, 'success');
+                return true;
             }
 
             async function updateOrder(id, data) {
@@ -3568,9 +3379,6 @@
                     showToast('Bạn không có quyền sửa đơn hàng này!', 'error');
                     return false;
                 }
-
-                isUpdating = true;
-                const oldData = { ...order };
                 order.name = data.name.trim();
                 order.phone = data.phone.trim();
                 order.address = data.address.trim();
@@ -3584,20 +3392,12 @@
                     order.note = data.note.trim();
                 }
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderOrders();
-                    renderStaffFilter();
-                    renderStaff();
-                    showToast(`✅ Đã cập nhật đơn hàng - Trạng thái: "${order.status}"`, 'success');
-                    return true;
-                } else {
-                    Object.assign(order, oldData);
-                    showToast('Cập nhật thất bại!', 'error');
-                    return false;
-                }
+                renderOrders();
+                renderStaffFilter();
+                renderStaff();
+                scheduleSync();
+                showToast(`✅ Đã cập nhật đơn hàng - Trạng thái: "${order.status}"`, 'success');
+                return true;
             }
 
             async function deleteOrder(id) {
@@ -3611,22 +3411,13 @@
 
                 addToUndo('delete_order', { ...order }, order.name);
 
-                isUpdating = true;
                 orders = orders.filter(o => o.id !== id);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderOrders();
-                    renderStaffFilter();
-                    renderStaff();
-                    showToast(`🗑️ Đã xóa đơn hàng của "${order.name}"`, 'info');
-                } else {
-                    orders.push(order);
-                    undoStack.pop();
-                    showToast('❌ Xóa thất bại!', 'error');
-                }
+                renderOrders();
+                renderStaffFilter();
+                renderStaff();
+                scheduleSync();
+                showToast(`🗑️ Đã xóa đơn hàng của "${order.name}"`, 'info');
             }
 
             // ========== STAFF FUNCTIONS ==========
@@ -3681,23 +3472,14 @@
 
                 addToUndo('delete_staff', { ...staff }, staff.name);
 
-                isUpdating = true;
                 orders.forEach(o => { if (o.staffId === id) o.staffId = 1; });
                 customers.forEach(c => { if (c.staffId === id) c.staffId = 1; });
                 users = users.filter(u => u.id !== id);
 
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderAll();
-                    showToast(`🗑️ Đã xóa nhân viên "${staff.name}"`, 'info');
-                    if (currentUser.id === id) logout();
-                } else {
-                    users.push(staff);
-                    undoStack.pop();
-                    showToast('❌ Xóa thất bại!', 'error');
-                }
+                renderAll();
+                scheduleSync();
+                showToast(`🗑️ Đã xóa nhân viên "${staff.name}"`, 'info');
+                if (currentUser.id === id) logout();
             }
 
             async function addStaff() {
@@ -3720,17 +3502,9 @@
                 newStaffName.value = '';
                 newStaffUsername.value = '';
 
-                isUpdating = true;
-                const success = await pushToNpoint();
-                isUpdating = false;
-
-                if (success) {
-                    renderAll();
-                    showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
-                } else {
-                    users.pop();
-                    showToast('Thêm thất bại!', 'error');
-                }
+                renderAll();
+                scheduleSync();
+                showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
             }
 
             function renderStaffFilter() {
@@ -4062,22 +3836,12 @@
 
                 const user = users.find(u => u.id === currentUser.id);
                 if (user) {
-                    const oldPassword = user.password;
                     user.password = newPwd;
                     currentUser.password = newPwd;
 
-                    isUpdating = true;
-                    const success = await pushToNpoint();
-                    isUpdating = false;
-
-                    if (success) {
-                        closePasswordModal();
-                        showToast('Đổi mật khẩu thành công!', 'success');
-                    } else {
-                        user.password = oldPassword;
-                        currentUser.password = oldPassword;
-                        showToast('Đổi mật khẩu thất bại!', 'error');
-                    }
+                    scheduleSync();
+                    closePasswordModal();
+                    showToast('Đổi mật khẩu thành công!', 'success');
                 }
             }
 
@@ -4187,21 +3951,12 @@
 
                             if (importedCount > 0) {
                                 orders.push(...newOrders);
-                                isUpdating = true;
-                                const success = await pushToNpoint();
-                                isUpdating = false;
-
-                                if (success) {
-                                    renderOrders();
-                                    renderStaffFilter();
-                                    renderStaff();
-                                    showToast(`Đã import ${importedCount} đơn hàng. ${errorCount} dòng bị bỏ qua.`,
-                                        'success');
-                                } else {
-                                    orders = orders.slice(0, -newOrders.length);
-                                    nextOrderId -= newOrders.length;
-                                    showToast('Import thất bại!', 'error');
-                                }
+                                renderOrders();
+                                renderStaffFilter();
+                                renderStaff();
+                                scheduleSync();
+                                showToast(`Đã import ${importedCount} đơn hàng. ${errorCount} dòng bị bỏ qua.`,
+                                    'success');
                             } else {
                                 showToast('Không có đơn hàng nào được import!', 'error');
                             }
@@ -4291,10 +4046,10 @@
             }
 
             function logout() {
-                if (syncInterval) { clearInterval(syncInterval);
-                    syncInterval = null; }
-                if (pullInterval) { clearInterval(pullInterval);
-                    pullInterval = null; }
+                if (syncTimeout) {
+                    clearTimeout(syncTimeout);
+                    syncTimeout = null;
+                }
                 currentUser = null;
                 loginPage.classList.remove('hidden');
                 appContainer.classList.remove('active');
@@ -4539,11 +4294,11 @@
                     showToast('Đã tải dữ liệu mặc định. Vui lòng nhập mã kết nối để đồng bộ!', 'success');
                 }
 
-                console.log('🛒 Hệ thống quản lý bán hàng - Real-time');
-                console.log('⚡ Đồng bộ mỗi 1 giây');
+                console.log('🛒 Hệ thống quản lý bán hàng');
+                console.log('⚡ Đồng bộ khi có thay đổi');
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
                 console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
-                console.log('🛡️ Không mất dữ liệu khi tải mới');
+                console.log('📝 Ai thao tác sau sẽ là dữ liệu cuối cùng (Last write wins)');
             }
 
             // Khởi động
