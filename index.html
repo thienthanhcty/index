@@ -23,25 +23,6 @@
             min-height: 100vh;
             padding: 1.5rem;
         }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c7d0;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0aab8;
-        }
-
-        /* ===== LOGIN ===== */
         .login-page {
             max-width: 420px;
             width: 100%;
@@ -151,8 +132,6 @@
         .login-hint i {
             color: #2563eb;
         }
-
-        /* ===== APP CONTAINER ===== */
         .app-container {
             max-width: 100%;
             width: 100%;
@@ -166,8 +145,6 @@
         .app-container.active {
             display: block;
         }
-
-        /* ===== HEADER ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -273,8 +250,6 @@
                 opacity: 0.6;
             }
         }
-
-        /* ===== STAFF SECTION ===== */
         .staff-section {
             background: #f9fafc;
             border-radius: 1.8rem;
@@ -353,8 +328,6 @@
         .staff-card .delete-staff:hover {
             background: #fecaca;
         }
-
-        /* ===== ADMIN TOOLS ===== */
         .admin-tools {
             margin-top: 1.2rem;
             display: flex;
@@ -410,8 +383,6 @@
         .hidden {
             display: none !important;
         }
-
-        /* ===== TABS ===== */
         .tabs-container {
             margin-bottom: 1.5rem;
         }
@@ -447,8 +418,6 @@
         .tab-content.active {
             display: block;
         }
-
-        /* ===== BULK AREA ===== */
         .bulk-area {
             background: white;
             border-radius: 1.2rem;
@@ -514,10 +483,6 @@
         .bulk-area .btn-bulk-add:hover {
             background: #1d4ed8;
         }
-        .bulk-area .btn-bulk-add:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
         .bulk-hint {
             font-size: 0.7rem;
             color: #6b7b93;
@@ -549,8 +514,6 @@
             font-size: 0.8rem;
             margin: 0 0.2rem;
         }
-
-        /* ===== CUSTOMER ===== */
         .customer-header {
             display: flex;
             justify-content: space-between;
@@ -648,8 +611,6 @@
         .customer-filter-area .refresh-cloud-btn i {
             margin-right: 4px;
         }
-
-        /* ===== TABLE ===== */
         .customer-table-container {
             background: #f9fafc;
             border-radius: 1.8rem;
@@ -732,8 +693,6 @@
             color: #6b7b93;
             white-space: nowrap;
         }
-
-        /* ===== PAGINATION ===== */
         .pagination-wrapper {
             display: flex;
             justify-content: space-between;
@@ -806,8 +765,6 @@
             color: #4b5a6f;
             margin-right: 0.2rem;
         }
-
-        /* ===== PRODUCT ===== */
         .product-header {
             display: flex;
             justify-content: space-between;
@@ -901,8 +858,6 @@
             font-size: 0.8rem;
             color: #4b5a6f;
         }
-
-        /* ===== ORDER ===== */
         .order-table-container {
             background: #f9fafc;
             border-radius: 1.8rem;
@@ -1067,8 +1022,6 @@
             display: inline-block;
             font-weight: 500;
         }
-
-        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 2rem;
@@ -1490,8 +1443,6 @@
             color: #2563eb;
             animation: pulse 1.5s infinite;
         }
-
-        /* ===== UNDO TOAST ===== */
         #undoToast {
             position: fixed;
             bottom: 5rem;
@@ -2017,6 +1968,7 @@
             <br /><i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
             <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ tự động trên nền tảng đám mây
             <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
+            <br /><i class="fas fa-sync"></i> <b>Ghi chú:</b> Nhân viên ghi chú sẽ được đồng bộ ngay lập tức
         </div>
     </div>
 
@@ -2036,7 +1988,7 @@
     <script>
         // ============================================================
         //  HỆ THỐNG QUẢN LÝ BÁN HÀNG
-        //  Phiên bản hoàn hảo - Đồng bộ đám mây
+        //  Phiên bản hoàn hảo - Đồng bộ đám mây real-time
         // ============================================================
 
         (function() {
@@ -2134,7 +2086,6 @@
             let pullInterval = null;
             let isPulling = false;
             let isDataLoaded = false;
-            let retryCount = 0;
             let renderTimeout = null;
             let dataVersion = 0;
             let lastDataHash = '';
@@ -2320,15 +2271,6 @@
 
             function getDataHash() {
                 return JSON.stringify({ users, products, customers, orders });
-            }
-
-            function hasDataChanged() {
-                const newHash = getDataHash();
-                if (newHash !== lastDataHash) {
-                    lastDataHash = newHash;
-                    return true;
-                }
-                return false;
             }
 
             // ========== TOAST & LOADING ==========
@@ -2572,7 +2514,6 @@
                         localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
                         updateSyncStatus('synced', '✅ Đã đồng bộ');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
-                        retryCount = 0;
                         return true;
                     } else {
                         throw new Error('Không thể đẩy dữ liệu');
@@ -2646,7 +2587,7 @@
                             showToast(`✅ Đã tải dữ liệu thành công (${orders.length} đơn hàng)`, 'success');
                         }
 
-                        scheduleRender();
+                        renderAll();
                         return true;
                     } else {
                         if (!isDataLoaded) {
@@ -2660,7 +2601,7 @@
                             isDataLoaded = true;
                             lastDataHash = getDataHash();
                             await pushToNpoint();
-                            scheduleRender();
+                            renderAll();
                             updateSyncStatus('synced', '✅ Đã khởi tạo dữ liệu mặc định');
                             showToast('Đã khởi tạo dữ liệu mặc định!', 'success');
                             return true;
@@ -2684,7 +2625,7 @@
                         nextCustomerId = Math.max(...customers.map(c => c.id)) + 1;
                         isDataLoaded = true;
                         lastDataHash = getDataHash();
-                        scheduleRender();
+                        renderAll();
                         showToast('Đã tải dữ liệu mặc định (không kết nối được)', 'error');
                     }
                     return false;
@@ -2745,23 +2686,12 @@
                         }
                     }
 
-                    scheduleRender();
+                    renderAll();
                     updateSyncStatus('synced', '🔄 Đã cập nhật dữ liệu');
                     updateNpointStatus(true, '✅ Đã đồng bộ');
                 } catch (error) {
                     console.error('Lỗi silent pull:', error);
                 }
-            }
-
-            // ===== DEBOUNCED RENDER =====
-            function scheduleRender() {
-                if (renderTimeout) {
-                    clearTimeout(renderTimeout);
-                }
-                renderTimeout = setTimeout(() => {
-                    renderTimeout = null;
-                    renderAll();
-                }, CONFIG.DEBOUNCE_DELAY);
             }
 
             // ===== AUTO PULL/PUSH =====
@@ -3063,7 +2993,6 @@
                     staffId: staffId || null
                 };
                 customers.push(newCustomer);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3075,12 +3004,12 @@
                 } else {
                     customers.pop();
                     nextCustomerId--;
-                    scheduleRender();
                     showToast('Thêm thất bại!', 'error');
                     return false;
                 }
             }
 
+            // ===== QUAN TRỌNG: UPDATE CUSTOMER - PUSH NGAY LẬP TỨC =====
             async function updateCustomer(id, name, phone, address, note, staffId) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
@@ -3109,9 +3038,9 @@
                     customer.staffId = staffId || null;
                 }
 
-                scheduleRender();
-
+                // ===== PUSH LÊN CLOUD NGAY LẬP TỨC =====
                 const success = await pushToNpoint();
+
                 if (success) {
                     renderCustomers();
                     renderStaffCustomerFilter();
@@ -3120,7 +3049,7 @@
                     return true;
                 } else {
                     Object.assign(customer, oldData);
-                    scheduleRender();
+                    renderCustomers();
                     showToast('Cập nhật thất bại!', 'error');
                     return false;
                 }
@@ -3138,7 +3067,6 @@
                 addToUndo('delete_customer', { ...customer }, customer.name);
 
                 customers = customers.filter(c => c.id !== id);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3149,7 +3077,6 @@
                 } else {
                     customers.push(customer);
                     undoStack.pop();
-                    scheduleRender();
                     showToast('❌ Xóa thất bại!', 'error');
                 }
             }
@@ -3259,7 +3186,6 @@
                 }
 
                 customers.push(...newCustomers);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3272,7 +3198,6 @@
                 } else {
                     customers = customers.slice(0, -newCustomers.length);
                     nextCustomerId -= newCustomers.length;
-                    scheduleRender();
                     showToast('Thêm hàng loạt thất bại!', 'error');
                 }
             }
@@ -3380,7 +3305,6 @@
                 }
                 const newProduct = { id: nextProductId++, name: name.trim(), note: note ? note.trim() : '' };
                 products.push(newProduct);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3390,7 +3314,6 @@
                 } else {
                     products.pop();
                     nextProductId--;
-                    scheduleRender();
                     showToast('Thêm thất bại!', 'error');
                     return false;
                 }
@@ -3406,7 +3329,6 @@
                 const oldData = { ...product };
                 product.name = name.trim();
                 product.note = note ? note.trim() : '';
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3415,7 +3337,6 @@
                     return true;
                 } else {
                     Object.assign(product, oldData);
-                    scheduleRender();
                     showToast('Cập nhật thất bại!', 'error');
                     return false;
                 }
@@ -3433,7 +3354,6 @@
                 addToUndo('delete_product', { ...product }, product.name);
 
                 products = products.filter(p => p.id !== id);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3442,7 +3362,6 @@
                 } else {
                     products.push(product);
                     undoStack.pop();
-                    scheduleRender();
                     showToast('❌ Xóa thất bại!', 'error');
                 }
             }
@@ -3565,7 +3484,6 @@
                     note: data.note ? data.note.trim() : ''
                 };
                 orders.push(newOrder);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3577,7 +3495,6 @@
                 } else {
                     orders.pop();
                     nextOrderId--;
-                    scheduleRender();
                     showToast('Thêm thất bại!', 'error');
                     return false;
                 }
@@ -3603,7 +3520,6 @@
                 if (isAdmin() && data.note !== undefined) {
                     order.note = data.note.trim();
                 }
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3614,7 +3530,6 @@
                     return true;
                 } else {
                     Object.assign(order, oldData);
-                    scheduleRender();
                     showToast('Cập nhật thất bại!', 'error');
                     return false;
                 }
@@ -3632,7 +3547,6 @@
                 addToUndo('delete_order', { ...order }, order.name);
 
                 orders = orders.filter(o => o.id !== id);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3643,7 +3557,6 @@
                 } else {
                     orders.push(order);
                     undoStack.pop();
-                    scheduleRender();
                     showToast('❌ Xóa thất bại!', 'error');
                 }
             }
@@ -3703,7 +3616,6 @@
                 orders.forEach(o => { if (o.staffId === id) o.staffId = 1; });
                 customers.forEach(c => { if (c.staffId === id) c.staffId = 1; });
                 users = users.filter(u => u.id !== id);
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3713,7 +3625,6 @@
                 } else {
                     users.push(staff);
                     undoStack.pop();
-                    scheduleRender();
                     showToast('❌ Xóa thất bại!', 'error');
                 }
             }
@@ -3737,7 +3648,6 @@
                 users.push(newStaff);
                 newStaffName.value = '';
                 newStaffUsername.value = '';
-                scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
@@ -3745,7 +3655,6 @@
                     showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
                 } else {
                     users.pop();
-                    scheduleRender();
                     showToast('Thêm thất bại!', 'error');
                 }
             }
@@ -4082,7 +3991,6 @@
                     const oldPassword = user.password;
                     user.password = newPwd;
                     currentUser.password = newPwd;
-                    scheduleRender();
 
                     const success = await pushToNpoint();
                     if (success) {
@@ -4091,7 +3999,6 @@
                     } else {
                         user.password = oldPassword;
                         currentUser.password = oldPassword;
-                        scheduleRender();
                         showToast('Đổi mật khẩu thất bại!', 'error');
                     }
                 }
@@ -4203,7 +4110,6 @@
 
                             if (importedCount > 0) {
                                 orders.push(...newOrders);
-                                scheduleRender();
                                 const success = await pushToNpoint();
                                 if (success) {
                                     renderOrders();
@@ -4214,7 +4120,6 @@
                                 } else {
                                     orders = orders.slice(0, -newOrders.length);
                                     nextOrderId -= newOrders.length;
-                                    scheduleRender();
                                     showToast('Import thất bại!', 'error');
                                 }
                             } else {
@@ -4549,7 +4454,7 @@
                     nextCustomerId = Math.max(...customers.map(c => c.id)) + 1;
                     isDataLoaded = true;
                     lastDataHash = getDataHash();
-                    scheduleRender();
+                    renderAll();
                     hideLoading();
                     showToast('Đã tải dữ liệu mặc định. Vui lòng nhập mã kết nối để đồng bộ!', 'success');
                 }
@@ -4558,6 +4463,7 @@
                 console.log('⚡ Tự động đồng bộ dữ liệu');
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
                 console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
+                console.log('✏️ Nhân viên ghi chú sẽ được đồng bộ ngay lập tức');
             }
 
             // Khởi động
