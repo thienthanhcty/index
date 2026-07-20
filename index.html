@@ -241,6 +241,10 @@
             background: #fee2e2;
             color: #991b1b;
         }
+        .sync-status.live {
+            background: #dbeafe;
+            color: #1e40af;
+        }
         @keyframes pulse {
             0%,
             100% {
@@ -1787,7 +1791,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
                     <span id="userNameDisplay" style="font-weight:500;color:#1f2a41;">admin@shop</span>
-                    <span class="sync-status" id="syncStatus">🔄 Đang kết nối...</span>
+                    <span class="sync-status live" id="syncStatus">🔄 Đang đồng bộ...</span>
                     <button class="change-password-btn" id="changePasswordBtn"><i class="fas fa-key"></i> Đổi mật khẩu</button>
                     <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
                 </div>
@@ -1905,7 +1909,7 @@
                     <i class="fas fa-info-circle"></i> Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công
                     <br /><i class="fas fa-info-circle"></i> Quản trị có thể sửa/xóa tất cả khách hàng
                     <br /><i class="fas fa-clock"></i> Thời gian ghi chú được tự động cập nhật khi nhân viên sửa ghi chú
-                    <br /><i class="fas fa-cloud-download-alt"></i> Dữ liệu được đồng bộ tự động
+                    <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ real-time <b>mỗi 1 giây</b> như Google Sheets
                     <br /><i class="fas fa-undo"></i> Có thể hoàn tác thao tác xóa trong vòng <b>5 giây</b>
                 </div>
             </div>
@@ -1966,9 +1970,9 @@
             <br /><i class="fas fa-edit"></i> <b>Quyền sửa:</b> Nhân viên sửa được thông tin khách hàng được phân công
             <br /><i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
             <br /><i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
-            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ tự động trên nền tảng đám mây
+            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ real-time như Google Sheets
             <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
-            <br /><i class="fas fa-sync"></i> <b>Ghi chú:</b> Nhân viên ghi chú sẽ được đồng bộ ngay lập tức
+            <br /><i class="fas fa-bolt"></i> <b>Real-time:</b> Mọi thay đổi được đồng bộ ngay lập tức
         </div>
     </div>
 
@@ -1987,8 +1991,8 @@
 
     <script>
         // ============================================================
-        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG
-        //  Phiên bản hoàn hảo - Đồng bộ đám mây real-time
+        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG - REAL-TIME LIKE GOOGLE SHEETS
+        //  Đồng bộ mỗi 1 giây - Người này sửa người kia thấy ngay
         // ============================================================
 
         (function() {
@@ -1996,8 +2000,8 @@
 
             // ========== CẤU HÌNH ==========
             const CONFIG = {
-                PULL_INTERVAL: 3000,
-                DEBOUNCE_DELAY: 300,
+                PULL_INTERVAL: 1000, // 1 giây - real-time như Google Sheets
+                DEBOUNCE_DELAY: 200,
                 MAX_RETRY: 3,
                 RETRY_DELAY: 1000,
                 UNDO_DURATION: 5000
@@ -2086,7 +2090,6 @@
             let pullInterval = null;
             let isPulling = false;
             let isDataLoaded = false;
-            let renderTimeout = null;
             let dataVersion = 0;
             let lastDataHash = '';
 
@@ -2273,6 +2276,10 @@
                 return JSON.stringify({ users, products, customers, orders });
             }
 
+            function hasDataChanged(newHash) {
+                return newHash !== lastDataHash;
+            }
+
             // ========== TOAST & LOADING ==========
             function showToast(message, type = 'success') {
                 toast.textContent = message;
@@ -2408,7 +2415,7 @@
                 }
             };
 
-            // ========== ĐỒNG BỘ DỮ LIỆU ==========
+            // ========== ĐỒNG BỘ DỮ LIỆU - REAL-TIME ==========
             function updateNpointStatus(connected, message) {
                 if (connected) {
                     npointStatus.className = 'npoint-status connected';
@@ -2436,6 +2443,8 @@
                         loginSyncBadge.textContent = '✅ Đã sẵn sàng';
                     } else if (status === 'error') {
                         loginSyncBadge.textContent = '❌ Không thể tải dữ liệu';
+                    } else if (status === 'live') {
+                        loginSyncBadge.textContent = '🔄 Đang đồng bộ...';
                     } else {
                         loginSyncBadge.textContent = message || '🔄 Đang tải dữ liệu...';
                     }
@@ -2512,7 +2521,7 @@
                     if (response.ok) {
                         dataVersion++;
                         localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
-                        updateSyncStatus('synced', '✅ Đã đồng bộ');
+                        updateSyncStatus('live', '🔄 Đã đồng bộ');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
                         return true;
                     } else {
@@ -2570,10 +2579,11 @@
                         lastDataHash = getDataHash();
                         isDataLoaded = true;
 
-                        updateSyncStatus('synced', '✅ Đã tải thành công');
+                        updateSyncStatus('live', '🔄 Đang đồng bộ');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
-                        updateLoginSyncStatus('synced', '✅ Đã sẵn sàng');
+                        updateLoginSyncStatus('live', '🔄 Đang đồng bộ');
 
+                        // Kiểm tra khách hàng mới
                         if (isStaff() && showLoadingIndicator) {
                             const newCustomers = customers.filter(c => c.staffId === currentUser.id);
                             const oldCustomerIds = oldCustomers.filter(c => c.staffId === currentUser.id).map(c => c.id);
@@ -2602,7 +2612,7 @@
                             lastDataHash = getDataHash();
                             await pushToNpoint();
                             renderAll();
-                            updateSyncStatus('synced', '✅ Đã khởi tạo dữ liệu mặc định');
+                            updateSyncStatus('live', '🔄 Đã đồng bộ');
                             showToast('Đã khởi tạo dữ liệu mặc định!', 'success');
                             return true;
                         }
@@ -2636,7 +2646,7 @@
                 }
             }
 
-            // ===== SILENT PULL =====
+            // ===== SILENT PULL - REAL-TIME =====
             async function silentPullFromNpoint() {
                 if (!currentUser || !isDataLoaded) return;
 
@@ -2650,20 +2660,24 @@
                     const data = await response.json();
                     if (!data || !data.users) return;
 
+                    // Kiểm tra thời gian cập nhật
                     if (data._updatedAt) {
                         const newTime = new Date(data._updatedAt).getTime();
                         const oldTime = parseInt(localStorage.getItem(STORAGE_KEYS.LAST_UPDATE) || '0');
                         if (newTime <= oldTime) return;
                     }
 
+                    // Kiểm tra version
                     if (data._version && data._version <= dataVersion) return;
 
+                    // Kiểm tra hash
                     const newHash = JSON.stringify({ users: data.users, products: data.products, customers: data
                             .customers, orders: data.orders });
                     if (newHash === lastDataHash) return;
 
                     const oldCustomers = [...customers];
 
+                    // Cập nhật dữ liệu mới
                     users = data.users;
                     products = data.products || products;
                     customers = data.customers || customers;
@@ -2677,6 +2691,7 @@
                     lastDataHash = newHash;
                     localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
 
+                    // Kiểm tra khách hàng mới cho staff
                     if (isStaff()) {
                         const newCustomers = customers.filter(c => c.staffId === currentUser.id);
                         const oldCustomerIds = oldCustomers.filter(c => c.staffId === currentUser.id).map(c => c.id);
@@ -2687,14 +2702,14 @@
                     }
 
                     renderAll();
-                    updateSyncStatus('synced', '🔄 Đã cập nhật dữ liệu');
+                    updateSyncStatus('live', '🔄 Đã cập nhật dữ liệu');
                     updateNpointStatus(true, '✅ Đã đồng bộ');
                 } catch (error) {
                     console.error('Lỗi silent pull:', error);
                 }
             }
 
-            // ===== AUTO PULL/PUSH =====
+            // ===== AUTO PULL/PUSH - REAL-TIME 1s =====
             function startAutoPull() {
                 if (pullInterval) { clearInterval(pullInterval);
                     pullInterval = null; }
@@ -3009,7 +3024,7 @@
                 }
             }
 
-            // ===== QUAN TRỌNG: UPDATE CUSTOMER - PUSH NGAY LẬP TỨC =====
+            // ===== QUAN TRỌNG: UPDATE CUSTOMER - REAL-TIME =====
             async function updateCustomer(id, name, phone, address, note, staffId) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
@@ -4459,11 +4474,11 @@
                     showToast('Đã tải dữ liệu mặc định. Vui lòng nhập mã kết nối để đồng bộ!', 'success');
                 }
 
-                console.log('🛒 Hệ thống quản lý bán hàng');
-                console.log('⚡ Tự động đồng bộ dữ liệu');
+                console.log('🛒 Hệ thống quản lý bán hàng - Real-time');
+                console.log('⚡ Đồng bộ mỗi 1 giây như Google Sheets');
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
                 console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
-                console.log('✏️ Nhân viên ghi chú sẽ được đồng bộ ngay lập tức');
+                console.log('✏️ Mọi thay đổi được đồng bộ ngay lập tức');
             }
 
             // Khởi động
