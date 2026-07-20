@@ -1862,7 +1862,7 @@
                 </div>
 
                 <div class="customer-header">
-                    <h3><i class="fas fa-user-friends"></i> Danh sách khách hàng <span class="badge-count" id="customerCount">0</span></h3>
+                    <h3><i class="fas fa-user-friends"></i> Danh sách khách hàng <span class="badge-count" id="customerCountDisplay">0</span></h3>
                     <button class="add-customer-btn" id="openCustomerModal"><i class="fas fa-plus"></i> Thêm khách hàng</button>
                 </div>
 
@@ -1879,7 +1879,7 @@
                 <div class="customer-table-container">
                     <table>
                         <thead>
-                            <tr><th>STT</th><th>Tên khách</th><th>SĐT</th><th>Địa chỉ</th><th>Ghi chú</th><th>Thời gian ghi chú</th><th>NV phụ trách</th><th>Thao tác</th></tr>
+                            <tr><th>Tên khách</th><th>SĐT</th><th>Địa chỉ</th><th>Ghi chú</th><th>Thời gian ghi chú</th><th>NV phụ trách</th><th>Thao tác</th></tr>
                         </thead>
                         <tbody id="customerTableBody"></tbody>
                     </table>
@@ -1915,12 +1915,12 @@
             <!-- TAB SẢN PHẨM -->
             <div class="tab-content" id="tab-products">
                 <div class="product-header">
-                    <h3><i class="fas fa-boxes"></i> Danh sách sản phẩm <span class="badge-count" id="productCount">0</span></h3>
+                    <h3><i class="fas fa-boxes"></i> Danh sách sản phẩm <span class="badge-count" id="productCountDisplay">0</span></h3>
                     <button class="add-product-btn" id="openProductModal"><i class="fas fa-plus"></i> Thêm sản phẩm</button>
                 </div>
                 <div class="product-table-container">
                     <table>
-                        <thead><tr><th>STT</th><th>Tên sản phẩm</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
+                        <thead><tr><th>Tên sản phẩm</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
                         <tbody id="productTableBody"></tbody>
                     </table>
                 </div>
@@ -2134,7 +2134,7 @@
             const bucketIdText = document.getElementById('bucketIdText');
 
             const customerTableBody = document.getElementById('customerTableBody');
-            const customerCount = document.getElementById('customerCount');
+            const customerCountDisplay = document.getElementById('customerCountDisplay');
             const openCustomerModalBtn = document.getElementById('openCustomerModal');
             const customerModal = document.getElementById('customerModal');
             const customerModalTitle = document.getElementById('customerModalTitle');
@@ -2158,7 +2158,7 @@
             const bulkAddBtn = document.getElementById('bulkAddBtn');
 
             const productTableBody = document.getElementById('productTableBody');
-            const productCount = document.getElementById('productCount');
+            const productCountDisplay = document.getElementById('productCountDisplay');
             const openProductModalBtn = document.getElementById('openProductModal');
             const productModal = document.getElementById('productModal');
             const productModalTitle = document.getElementById('productModalTitle');
@@ -2813,1483 +2813,967 @@
 
                 customerTableBody.innerHTML = '';
                 if (pageData.length === 0) {
-                    const colSpan = isAdmin() ? 8 : 7;
+                    const colSpan = isAdmin() ? 7 : 6;
                     customerTableBody.innerHTML =
                         `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Không có khách hàng nào</td></tr>`;
-                    customerCount.textContent = '0';
-                    renderPagination();
+                    customerCountDisplay.textContent = '0';
                     return;
                 }
-                customerCount.textContent = filteredCustomers.length;
 
-                pageData.forEach((c, index) => {
-                    const staffName = getStaffName(c.staffId);
+                customerCountDisplay.textContent = filteredCustomers.length;
+
+                pageData.forEach((c) => {
                     const tr = document.createElement('tr');
-                    const globalIndex = start + index + 1;
-
-                    let actionsHtml = '';
-                    if (isAdmin()) {
-                        actionsHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit-customer" data-id="${c.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                                <button class="btn-delete-customer" data-id="${c.id}" title="Xóa"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                    } else if (isStaff() && c.staffId === currentUser.id) {
-                        actionsHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit-customer" data-id="${c.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                            </div>
-                        `;
-                    }
-
-                    const staffCol = isAdmin() ? `<td><span class="staff-badge">${staffName}</span></td>` : '';
+                    const noteTimeDisplay = c.noteTime ? `<span class="note-time-cell"><i class="far fa-clock"></i> ${c.noteTime}</span>` : '';
+                    const editBtn = `<button class="btn-edit-customer" onclick="openEditCustomerModal(${c.id})" title="Sửa"><i class="fas fa-edit"></i> Sửa</button>`;
+                    const deleteBtn = isAdmin() ? `<button class="btn-delete-customer" onclick="deleteCustomer(${c.id})" title="Xóa"><i class="fas fa-trash-alt"></i> Xóa</button>` : '';
 
                     tr.innerHTML = `
-                        <td style="text-align:center;">${globalIndex}</td>
-                        <td><strong>${c.name}</strong></td>
-                        <td>${c.phone}</td>
-                        <td style="max-width:200px;word-break:break-word;">${c.address}</td>
-                        <td class="note-cell" title="${c.note || ''}">${c.note || ''}</td>
-                        <td class="note-time-cell">${c.noteTime || ''}</td>
-                        ${staffCol}
-                        <td>${actionsHtml}</td>
+                        <td><span style="font-weight:600;color:#0b1b33;">${c.name}</span></td>
+                        <td><a href="tel:${c.phone}" style="color:#2563eb;text-decoration:none;font-weight:500;"><i class="fas fa-phone-alt" style="font-size:0.75rem;margin-right:4px;"></i>${c.phone}</a></td>
+                        <td><span style="color:#4b5a6f;">${c.address}</span></td>
+                        <td><div class="note-cell" title="${c.note || ''}">${c.note || '<span style="color:#a0aec0;font-style:italic;">Trống</span>'}</div></td>
+                        <td>${noteTimeDisplay}</td>
+                        <td><span class="staff-badge"><i class="fas fa-user-tie" style="margin-right:4px;color:#2563eb;"></i>${getStaffName(c.staffId)}</span></td>
+                        <td><div class="action-buttons">${editBtn}${deleteBtn}</div></td>
                     `;
                     customerTableBody.appendChild(tr);
                 });
-
-                document.querySelectorAll('.btn-edit-customer').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = parseInt(this.dataset.id);
-                        openEditCustomerModal(id);
-                    });
-                });
-
-                if (isAdmin()) {
-                    document.querySelectorAll('.btn-delete-customer').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = parseInt(this.dataset.id);
-                            deleteCustomer(id);
-                        });
-                    });
-                }
-
-                renderPagination();
-                updateFilterStats();
             }
 
             function renderCustomers() {
-                if (!isDataLoaded) return;
                 filteredCustomers = getFilteredCustomers();
-                currentPage = 1;
+                renderPagination();
                 renderCustomerPage();
             }
 
-            // ========== CRUD CUSTOMER - GIỮ NGUYÊN STAFFID ==========
-            async function addCustomer(name, phone, address, note, staffId) {
-                if (!name || !phone || !address) {
-                    showToast('Vui lòng nhập đầy đủ: Tên, SĐT, Địa chỉ!', 'error');
-                    return false;
-                }
-                if (customers.some(c => c.phone === phone)) {
-                    showToast('Số điện thoại đã tồn tại!', 'error');
-                    return false;
-                }
-
-                const newCustomer = {
-                    id: nextCustomerId++,
-                    name: name.trim(),
-                    phone: phone.trim(),
-                    address: address.trim(),
-                    note: note ? note.trim() : '',
-                    noteTime: note ? getFullDateTime() : '',
-                    staffId: staffId || null
-                };
-                customers.push(newCustomer);
-
-                renderCustomers();
-                renderStaffCustomerFilter();
-                renderCustomerSelect('');
-
-                scheduleSync();
-                showToast(`Đã thêm khách hàng "${name}"`, 'success');
-                return true;
-            }
-
-            // ===== QUAN TRỌNG: UPDATE CUSTOMER - GIỮ NGUYÊN STAFFID =====
-            async function updateCustomer(id, name, phone, address, note, staffId) {
-                const customer = customers.find(c => c.id === id);
-                if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
-                if (isStaff() && customer.staffId !== currentUser.id) {
-                    showToast('Bạn không có quyền sửa khách hàng này!', 'error');
-                    return false;
-                }
-                if (customers.some(c => c.phone === phone && c.id !== id)) {
-                    showToast('Số điện thoại đã tồn tại!', 'error');
-                    return false;
-                }
-
-                const noteChanged = note !== customer.note;
-
-                customer.name = name.trim();
-                customer.phone = phone.trim();
-                customer.address = address.trim();
-                customer.note = note ? note.trim() : '';
-                if (noteChanged && customer.note.trim() !== '') {
-                    customer.noteTime = getFullDateTime();
-                } else if (noteChanged && customer.note.trim() === '') {
-                    customer.noteTime = '';
-                }
-
-                // ===== QUAN TRỌNG: Chỉ cập nhật staffId nếu có giá trị =====
-                // Nếu staffId là null hoặc undefined, giữ nguyên giá trị cũ
-                if (staffId !== null && staffId !== undefined && staffId !== '') {
-                    customer.staffId = parseInt(staffId);
-                }
-                // Nếu là Staff thì luôn giữ nguyên staffId của họ
-                if (isStaff()) {
-                    customer.staffId = currentUser.id;
-                }
-
-                renderCustomers();
-                renderStaffCustomerFilter();
-                renderCustomerSelect('');
-
-                scheduleSync();
-                showToast(`Đã cập nhật khách hàng "${name}"`, 'success');
-                return true;
-            }
-
-            async function deleteCustomer(id) {
-                if (!isAdmin()) {
-                    showToast('Chỉ quản trị mới được xóa khách hàng', 'error');
-                    return;
-                }
-
-                const customer = customers.find(c => c.id === id);
-                if (!customer) return;
-
-                addToUndo('delete_customer', { ...customer }, customer.name);
-
-                customers = customers.filter(c => c.id !== id);
-
-                renderCustomers();
-                renderStaffCustomerFilter();
-                renderCustomerSelect('');
-
-                scheduleSync();
-                showToast(`🗑️ Đã xóa khách hàng "${customer.name}"`, 'info');
-            }
-
-            // ========== BULK ADD ==========
-            async function bulkAddCustomers() {
-                if (!isAdmin()) {
-                    showToast('Chỉ quản trị mới được phân phối hàng loạt', 'error');
-                    return;
-                }
-
-                const text = bulkCustomerInput.value.trim();
-                if (!text) {
-                    showToast('Vui lòng nhập danh sách khách hàng!', 'error');
-                    return;
-                }
-
-                const staffId = parseInt(bulkStaffSelect.value) || null;
-                const lines = text.split('\n').filter(line => line.trim());
-
-                if (lines.length === 0) {
-                    showToast('Không có dòng dữ liệu nào!', 'error');
-                    return;
-                }
-
-                let added = 0,
-                    errors = 0;
-                const newCustomers = [];
-                let errorDetails = [];
-
-                lines.forEach((line, index) => {
-                    const lineNum = index + 1;
-                    let rawLine = line.trim();
-
-                    if (!rawLine) return;
-
-                    let parts = rawLine.split('+').map(s => s.trim());
-
-                    if (parts.length < 3) {
-                        parts = rawLine.split(',').map(s => s.trim());
-                    }
-
-                    if (parts.length < 3) {
-                        errors++;
-                        errorDetails.push(`Dòng ${lineNum}: Thiếu thông tin (cần: Tên + SĐT + Địa chỉ)`);
-                        return;
-                    }
-
-                    let name = parts[0] || '';
-                    let phone = parts[1] || '';
-                    let address = parts[2] || '';
-                    let note = parts.length > 3 ? parts.slice(3).join(' - ') : '';
-
-                    name = name.replace(/\s+/g, ' ').trim();
-                    phone = phone.replace(/\s+/g, ' ').trim();
-                    address = address.replace(/\s+/g, ' ').trim();
-                    note = note.replace(/\s+/g, ' ').trim();
-
-                    phone = phone.replace(/[^0-9]/g, '');
-
-                    if (!name) {
-                        errors++;
-                        errorDetails.push(`Dòng ${lineNum}: Tên không được để trống`);
-                        return;
-                    }
-
-                    if (!phone || phone.length < 9) {
-                        errors++;
-                        errorDetails.push(`Dòng ${lineNum}: Số điện thoại không hợp lệ (cần ít nhất 9 số)`);
-                        return;
-                    }
-
-                    if (!address) {
-                        errors++;
-                        errorDetails.push(`Dòng ${lineNum}: Địa chỉ không được để trống`);
-                        return;
-                    }
-
-                    if (customers.some(c => c.phone === phone) || newCustomers.some(c => c.phone === phone)) {
-                        errors++;
-                        errorDetails.push(`Dòng ${lineNum}: Số điện thoại ${phone} đã tồn tại`);
-                        return;
-                    }
-
-                    newCustomers.push({
-                        id: nextCustomerId++,
-                        name: name,
-                        phone: phone,
-                        address: address,
-                        note: note || '',
-                        noteTime: note ? getFullDateTime() : '',
-                        staffId: staffId
-                    });
-                    added++;
-                });
-
-                if (errorDetails.length > 0) {
-                    console.log('❌ Lỗi import:', errorDetails.join('\n'));
-                    const showErrors = errorDetails.slice(0, 3).join('\n');
-                    const more = errorDetails.length > 3 ? `\n... và ${errorDetails.length - 3} lỗi khác` : '';
-                    showToast(`⚠️ ${errorDetails.length} lỗi:\n${showErrors}${more}`, 'error');
-                }
-
-                if (added === 0) {
-                    showToast(`Không có khách hàng nào được thêm! ${errors} dòng bị lỗi.`, 'error');
-                    return;
-                }
-
-                customers.push(...newCustomers);
-
-                renderCustomers();
-                renderStaffCustomerFilter();
-                renderCustomerSelect('');
-                bulkCustomerInput.value = '';
-
-                scheduleSync();
-                const staffName = staffId ? getStaffName(staffId) : 'chưa phân công';
-                showToast(`✅ Đã phân phối ${added} khách hàng cho ${staffName}. ${errors} dòng bị bỏ qua.`, 'success');
-            }
-
-            // ========== CUSTOMER SELECT ==========
-            function renderCustomerSelect(searchTerm = '') {
-                let filtered = [...customers];
-                if (searchTerm && searchTerm.trim()) {
-                    const term = searchTerm.trim().toLowerCase();
-                    filtered = filtered.filter(c =>
-                        c.name.toLowerCase().includes(term) || c.phone.includes(term)
-                    );
-                }
-
-                if (searchResultCount) {
-                    searchResultCount.textContent = searchTerm && searchTerm.trim() ?
-                        `${filtered.length} kết quả` :
-                        `${customers.length} khách hàng`;
-                    searchResultCount.style.display = 'inline';
-                }
-
-                if (searchClearBtn) {
-                    searchClearBtn.classList.toggle('visible', !!(searchTerm && searchTerm.trim()));
-                }
-
-                const currentValue = orderCustomerSelect.value;
-                orderCustomerSelect.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
-                if (filtered.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = '🔍 Không tìm thấy khách hàng';
-                    option.disabled = true;
-                    orderCustomerSelect.appendChild(option);
-                } else {
-                    filtered.forEach(c => {
-                        const option = document.createElement('option');
-                        option.value = c.id;
-                        option.dataset.phone = c.phone;
-                        option.dataset.address = c.address;
-                        option.textContent = `${c.name} - ${c.phone}`;
-                        orderCustomerSelect.appendChild(option);
-                    });
-                }
-                if (currentValue && filtered.some(c => c.id === parseInt(currentValue))) {
-                    orderCustomerSelect.value = currentValue;
-                }
-            }
-
-            // ========== PRODUCT FUNCTIONS ==========
             function renderProducts() {
-                if (!isDataLoaded) return;
                 productTableBody.innerHTML = '';
+                productCountDisplay.textContent = products.length;
+
                 if (products.length === 0) {
                     productTableBody.innerHTML =
-                        `<tr><td colspan="4" style="text-align:center;padding:2rem;color:#6b7b93;">Chưa có sản phẩm nào</td></tr>`;
-                    productCount.textContent = '0';
+                        '<tr><td colspan="3" style="text-align:center;padding:2rem;color:#6b7b93;">Không có sản phẩm nào</td></tr>';
                     return;
                 }
-                productCount.textContent = products.length;
 
-                products.forEach((p, index) => {
+                products.forEach((p) => {
                     const tr = document.createElement('tr');
-                    let actionsHtml = '';
-                    if (isAdmin()) {
-                        actionsHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit-product" data-id="${p.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                                <button class="btn-delete-product" data-id="${p.id}" title="Xóa"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                    } else {
-                        actionsHtml = `<span style="font-size:0.7rem;color:#6b7b93;">Chỉ xem</span>`;
-                    }
+                    const editBtn = isAdmin() ? `<button class="btn-edit-product" onclick="openEditProductModal(${p.id})"><i class="fas fa-edit"></i> Sửa</button>` : '';
+                    const deleteBtn = isAdmin() ? `<button class="btn-delete-product" onclick="deleteProduct(${p.id})"><i class="fas fa-trash-alt"></i> Xóa</button>` : '';
+                    const actionCell = isAdmin() ? `<td><div class="action-buttons">${editBtn}${deleteBtn}</div></td>` : '<td><span style="color:#6b7b93;font-style:italic;">Không có quyền</span></td>';
+
                     tr.innerHTML = `
-                        <td style="text-align:center;">${index + 1}</td>
-                        <td><strong>${p.name}</strong></td>
-                        <td class="note-cell" title="${p.note || ''}">${p.note || ''}</td>
-                        <td>${actionsHtml}</td>
+                        <td><span style="font-weight:600;color:#0b1b33;">${p.name}</span></td>
+                        <td><div class="note-cell" title="${p.note || ''}">${p.note || '<span style="color:#a0aec0;font-style:italic;">Không có ghi chú</span>'}</div></td>
+                        ${actionCell}
                     `;
                     productTableBody.appendChild(tr);
                 });
-
-                if (isAdmin()) {
-                    document.querySelectorAll('.btn-edit-product').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = parseInt(this.dataset.id);
-                            openEditProductModal(id);
-                        });
-                    });
-                    document.querySelectorAll('.btn-delete-product').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = parseInt(this.dataset.id);
-                            deleteProduct(id);
-                        });
-                    });
-                }
-                renderProductSelect();
             }
 
-            async function addProduct(name, note) {
-                if (!name) { showToast('Vui lòng nhập tên sản phẩm!', 'error'); return false; }
-                if (products.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                    showToast('Tên sản phẩm đã tồn tại!', 'error');
-                    return false;
-                }
-                const newProduct = { id: nextProductId++, name: name.trim(), note: note ? note.trim() : '' };
-                products.push(newProduct);
-
-                renderProducts();
-                scheduleSync();
-                showToast(`Đã thêm sản phẩm "${name}"`, 'success');
-                return true;
-            }
-
-            async function updateProduct(id, name, note) {
-                const product = products.find(p => p.id === id);
-                if (!product) { showToast('Sản phẩm không tồn tại!', 'error'); return false; }
-                if (products.some(p => p.name.toLowerCase() === name.toLowerCase() && p.id !== id)) {
-                    showToast('Tên sản phẩm đã tồn tại!', 'error');
-                    return false;
-                }
-                product.name = name.trim();
-                product.note = note ? note.trim() : '';
-
-                renderProducts();
-                scheduleSync();
-                showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
-                return true;
-            }
-
-            async function deleteProduct(id) {
-                if (!isAdmin()) {
-                    showToast('Chỉ quản trị mới được xóa sản phẩm', 'error');
-                    return;
-                }
-
-                const product = products.find(p => p.id === id);
-                if (!product) return;
-
-                addToUndo('delete_product', { ...product }, product.name);
-
-                products = products.filter(p => p.id !== id);
-
-                renderProducts();
-                scheduleSync();
-                showToast(`🗑️ Đã xóa sản phẩm "${product.name}"`, 'info');
-            }
-
-            function renderProductSelect() {
-                orderProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
-                products.forEach(p => {
-                    const option = document.createElement('option');
-                    option.value = p.name;
-                    option.textContent = p.name;
-                    orderProductSelect.appendChild(option);
-                });
-            }
-
-            // ========== ORDER FUNCTIONS ==========
             function renderOrders() {
-                if (!isDataLoaded) return;
-                let filteredOrders = [...orders];
+                orderBody.innerHTML = '';
+                let oFilter = [...orders];
+
                 if (isStaff()) {
-                    filteredOrders = filteredOrders.filter(o => o.staffId === currentUser.id);
-                }
-                const filterValue = staffFilter.value;
-                if (isAdmin() && filterValue !== 'all') {
-                    filteredOrders = filteredOrders.filter(o => o.staffId === parseInt(filterValue));
+                    oFilter = oFilter.filter(o => o.staffId === currentUser.id);
+                } else if (isAdmin() && staffFilter.value !== 'all') {
+                    oFilter = oFilter.filter(o => o.staffId === parseInt(staffFilter.value));
                 }
 
-                orderBody.innerHTML = '';
-                if (filteredOrders.length === 0) {
-                    const colSpan = isAdmin() ? 13 : 12;
+                orderCount.textContent = oFilter.length;
+
+                if (oFilter.length === 0) {
                     orderBody.innerHTML =
-                        `<tr><td colspan="${colSpan}" style="text-align:center;padding:2rem;color:#6b7b93;">Không có đơn hàng nào</td></tr>`;
-                    orderCount.textContent = '0';
+                        '<tr><td colspan="13" style="text-align:center;padding:2rem;color:#6b7b93;">Không có đơn hàng nào</td></tr>';
                     return;
                 }
-                orderCount.textContent = filteredOrders.length;
 
-                const sortedOrders = [...filteredOrders].sort((a, b) => {
-                    if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
-                    return (a.time || '00:00') < (b.time || '00:00') ? 1 : -1;
-                });
+                oFilter.sort((a, b) => (b.date + ' ' + b.time).localeCompare(a.date + ' ' + a.time));
 
-                sortedOrders.forEach(o => {
+                oFilter.forEach(o => {
                     const tr = document.createElement('tr');
-                    const statusClass = getStatusClass(o.status);
-                    const staffName = getStaffName(o.staffId);
-
-                    let actionsHtml = '';
-                    if (isAdmin()) {
-                        actionsHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit-order" data-id="${o.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                                <button class="btn-delete-order" data-id="${o.id}" title="Xóa"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                    } else if (isStaff() && o.staffId === currentUser.id) {
-                        actionsHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit-order" data-id="${o.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                            </div>
-                        `;
-                    }
-
-                    const staffCol = isAdmin() ? `<td><span class="staff-badge">${staffName}</span></td>` : '';
-                    let noteDisplay = o.note || '';
-                    if (isStaff() && o.staffId !== currentUser.id) noteDisplay = '---';
+                    const editBtn = `<button class="btn-edit-order" onclick="openEditOrderModal(${o.id})"><i class="fas fa-edit"></i> Sửa</button>`;
+                    const deleteBtn = isAdmin() ? `<button class="btn-delete-order" onclick="deleteOrder(${o.id})"><i class="fas fa-trash-alt"></i> Xóa</button>` : '';
 
                     tr.innerHTML = `
-                        <td>${formatDate(o.date)}</td>
-                        <td><span class="time-badge"><i class="fas fa-clock"></i> ${o.time || '--:--'}</span></td>
-                        <td><strong>${o.name}</strong></td>
-                        <td>${o.phone}</td>
-                        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.address}">${o.address}</td>
-                        <td>${o.product}</td>
-                        <td style="text-align:center;">${o.quantity}</td>
-                        <td>${formatCurrency(o.price)}</td>
-                        <td style="font-size:0.75rem;">${o.tracking || '---'}</td>
-                        ${staffCol}
-                        <td><span class="status-badge ${statusClass}">${o.status}</span></td>
-                        <td class="note-cell" title="${noteDisplay}" style="max-width:120px;">${noteDisplay}</td>
-                        <td>${actionsHtml}</td>
+                        <td><span class="time-badge" style="background:#f1f5f9;color:#4b5a6f;">${formatDate(o.date)}</span></td>
+                        <td><span class="time-badge">${o.time}</span></td>
+                        <td><span style="font-weight:600;color:#0b1b33;">${o.name}</span></td>
+                        <td><a href="tel:${o.phone}" style="color:#2563eb;text-decoration:none;"><i class="fas fa-phone-alt" style="font-size:0.7rem;margin-right:2px;"></i>${o.phone}</a></td>
+                        <td><span style="color:#4b5a6f;font-size:0.8rem;">${o.address}</span></td>
+                        <td><span style="font-weight:500;color:#0b1b33;">${o.product}</span></td>
+                        <td style="text-align:center;font-weight:600;">${o.quantity}</td>
+                        <td style="font-weight:600;color:#059669;">${formatCurrency(o.price)}</td>
+                        <td><span style="font-family:monospace;background:#f1f5f9;padding:0.1rem 0.5rem;border-radius:4px;color:#0b1b33;">${o.tracking || '-'}</span></td>
+                        <td><span class="staff-badge"><i class="fas fa-user-tie" style="margin-right:4px;color:#2563eb;"></i>${getStaffName(o.staffId)}</span></td>
+                        <td><span class="status-badge ${getStatusClass(o.status)}">${o.status}</span></td>
+                        <td><div class="note-cell" title="${o.note || ''}">${o.note || '-'}</div></td>
+                        <td><div class="action-buttons">${editBtn}${deleteBtn}</div></td>
                     `;
                     orderBody.appendChild(tr);
                 });
-
-                document.querySelectorAll('.btn-edit-order').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = parseInt(this.dataset.id);
-                        openEditOrderModal(id);
-                    });
-                });
-                if (isAdmin()) {
-                    document.querySelectorAll('.btn-delete-order').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = parseInt(this.dataset.id);
-                            deleteOrder(id);
-                        });
-                    });
-                }
             }
 
-            async function addOrder(data) {
-                let staffId = data.staffId;
-                if (isStaff()) staffId = currentUser.id;
-                const now = getCurrentDateTime();
-                const status = data.status || 'Chờ xác nhận';
-
-                const newOrder = {
-                    id: nextOrderId++,
-                    date: now.date,
-                    time: now.time,
-                    name: data.name.trim(),
-                    phone: data.phone.trim(),
-                    address: data.address.trim(),
-                    product: data.product.trim(),
-                    quantity: parseInt(data.quantity) || 1,
-                    price: parseInt(data.price) || 0,
-                    tracking: data.tracking.trim() || '',
-                    status,
-                    staffId: staffId || null,
-                    note: data.note ? data.note.trim() : ''
-                };
-                orders.push(newOrder);
-
-                renderOrders();
-                renderStaffFilter();
-                renderStaff();
-                scheduleSync();
-                showToast(`✅ Đã thêm đơn hàng với trạng thái "${status}"`, 'success');
-                return true;
-            }
-
-            async function updateOrder(id, data) {
-                const order = orders.find(o => o.id === id);
-                if (!order) { showToast('Đơn hàng không tồn tại!', 'error'); return false; }
-                if (isStaff() && order.staffId !== currentUser.id) {
-                    showToast('Bạn không có quyền sửa đơn hàng này!', 'error');
-                    return false;
-                }
-                order.name = data.name.trim();
-                order.phone = data.phone.trim();
-                order.address = data.address.trim();
-                order.product = data.product.trim();
-                order.quantity = parseInt(data.quantity) || 1;
-                order.price = parseInt(data.price) || 0;
-                order.tracking = data.tracking.trim() || '';
-                order.status = data.status || order.status;
-                if (isAdmin() && data.staffId) order.staffId = parseInt(data.staffId);
-                if (isAdmin() && data.note !== undefined) {
-                    order.note = data.note.trim();
-                }
-
-                renderOrders();
-                renderStaffFilter();
-                renderStaff();
-                scheduleSync();
-                showToast(`✅ Đã cập nhật đơn hàng - Trạng thái: "${order.status}"`, 'success');
-                return true;
-            }
-
-            async function deleteOrder(id) {
-                if (!isAdmin()) {
-                    showToast('Chỉ quản trị mới được xóa đơn hàng', 'error');
-                    return;
-                }
-
-                const order = orders.find(o => o.id === id);
-                if (!order) return;
-
-                addToUndo('delete_order', { ...order }, order.name);
-
-                orders = orders.filter(o => o.id !== id);
-
-                renderOrders();
-                renderStaffFilter();
-                renderStaff();
-                scheduleSync();
-                showToast(`🗑️ Đã xóa đơn hàng của "${order.name}"`, 'info');
-            }
-
-            // ========== STAFF FUNCTIONS ==========
             function renderStaff() {
-                if (!isDataLoaded) return;
-                const staffs = getStaffUsers();
                 staffGrid.innerHTML = '';
-                if (staffs.length === 0) {
-                    staffGrid.innerHTML = '<div style="padding:1rem;text-align:center;color:#6b7b93;">Chưa có nhân viên nào.</div>';
-                    staffCount.textContent = '(0 tài khoản)';
-                    return;
-                }
+                const staffs = getStaffUsers();
                 staffCount.textContent = `(${staffs.length} tài khoản)`;
 
-                staffs.forEach((staff) => {
-                    const orderCount = orders.filter(o => o.staffId === staff.id).length;
-                    const customerCount = customers.filter(c => c.staffId === staff.id).length;
+                staffs.forEach(s => {
                     const card = document.createElement('div');
                     card.className = 'staff-card';
+                    const deleteBtn = isAdmin() ? `<button class="delete-staff" onclick="deleteStaff(${s.id})" title="Xóa nhân viên"><i class="fas fa-times"></i></button>` : '';
+
                     card.innerHTML = `
-                        <div class="staff-avatar">${staff.avatar || 'NV'}</div>
+                        <div class="staff-avatar">${s.avatar || 'NV'}</div>
                         <div class="staff-info">
-                            <div class="staff-name">${staff.name}</div>
-                            <div class="staff-role"><i class="fas fa-user-tie"></i> Sale</div>
-                            <div style="font-size:0.65rem;color:#6b7b93;margin-top:2px;">
-                                <i class="fas fa-users"></i> ${customerCount} KH · 
-                                <i class="fas fa-file-alt"></i> ${orderCount} đơn
-                            </div>
+                            <div class="staff-name">${s.name}</div>
+                            <div class="staff-role">@${s.username}</div>
                         </div>
-                        <div style="font-size:0.7rem;color:#6b7b93;">${staff.username}</div>
-                        ${isAdmin() ? `<button class="delete-staff" data-id="${staff.id}" title="Xóa"><i class="fas fa-times"></i></button>` : ''}
+                        ${deleteBtn}
                     `;
                     staffGrid.appendChild(card);
                 });
 
-                if (isAdmin()) {
-                    document.querySelectorAll('.delete-staff').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const id = parseInt(this.dataset.id);
-                            deleteStaff(id);
-                        });
-                    });
-                }
-            }
+                const bulkSelect = document.getElementById('bulkStaffSelect');
+                bulkSelect.innerHTML = '';
+                staffs.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    bulkSelect.appendChild(opt);
+                });
 
-            async function deleteStaff(id) {
-                if (!isAdmin()) return;
+                const customerStaff = document.getElementById('customerStaffId');
+                customerStaff.innerHTML = '';
+                staffs.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    customerStaff.appendChild(opt);
+                });
 
-                const staff = users.find(u => u.id === id);
-                if (!staff || staff.role === 'admin') return;
-
-                addToUndo('delete_staff', { ...staff }, staff.name);
-
-                orders.forEach(o => { if (o.staffId === id) o.staffId = 1; });
-                customers.forEach(c => { if (c.staffId === id) c.staffId = 1; });
-                users = users.filter(u => u.id !== id);
-
-                renderAll();
-                scheduleSync();
-                showToast(`🗑️ Đã xóa nhân viên "${staff.name}"`, 'info');
-                if (currentUser.id === id) logout();
-            }
-
-            async function addStaff() {
-                if (!isAdmin()) { showToast('Bạn không có quyền thêm nhân viên', 'error'); return; }
-                const name = newStaffName.value.trim();
-                const username = newStaffUsername.value.trim();
-                if (!name || !username) { showToast('Vui lòng nhập tên và tên đăng nhập.', 'error'); return; }
-                if (users.some(u => u.username === username)) { showToast('Tên đăng nhập đã tồn tại!', 'error'); return; }
-
-                const newId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 7;
-                const newStaff = {
-                    id: newId,
-                    name,
-                    username,
-                    password: '123456',
-                    role: 'staff',
-                    avatar: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-                };
-                users.push(newStaff);
-                newStaffName.value = '';
-                newStaffUsername.value = '';
-
-                renderAll();
-                scheduleSync();
-                showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
+                const orderStaff = document.getElementById('orderStaffId');
+                orderStaff.innerHTML = '';
+                staffs.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    orderStaff.appendChild(opt);
+                });
             }
 
             function renderStaffFilter() {
-                const staffs = getStaffUsers();
-                const currentValue = staffFilter.value;
-                staffFilter.innerHTML = '<option value="all">📋 Tất cả nhân viên</option>';
-                staffs.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = s.id;
-                    option.textContent = `👤 ${s.name} (${orders.filter(o => o.staffId === s.id).length})`;
-                    staffFilter.appendChild(option);
-                });
-                if (currentValue) staffFilter.value = currentValue;
-            }
-
-            function renderStaffSelectors() {
-                const staffs = getStaffUsers();
-
-                customerStaffId.innerHTML = '';
-                staffs.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.name;
-                    customerStaffId.appendChild(opt);
-                });
-                if (isStaff()) {
-                    customerStaffId.value = currentUser.id;
-                    customerStaffId.disabled = true;
-                } else {
-                    customerStaffId.disabled = false;
-                }
-
-                bulkStaffSelect.innerHTML = '';
-                const defaultOpt = document.createElement('option');
-                defaultOpt.value = '';
-                defaultOpt.textContent = '-- Chọn nhân viên --';
-                bulkStaffSelect.appendChild(defaultOpt);
-                staffs.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.name;
-                    bulkStaffSelect.appendChild(opt);
-                });
-
-                orderStaffId.innerHTML = '';
-                staffs.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.name;
-                    orderStaffId.appendChild(opt);
-                });
-                if (isStaff()) {
-                    orderStaffId.value = currentUser.id;
-                    orderStaffId.disabled = true;
-                } else {
-                    orderStaffId.disabled = false;
-                }
-            }
-
-            // ========== MODAL FUNCTIONS ==========
-            function openCustomerModal() {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được thêm khách hàng', 'error'); return; }
-                editCustomerId.value = '';
-                customerModalTitle.innerHTML = '<i class="fas fa-user-plus"></i> Thêm khách hàng';
-                customerNameInput.value = '';
-                customerPhoneInput.value = '';
-                customerAddressInput.value = '';
-                customerNoteInput.value = '';
-                customerStaffId.value = '';
-                customerModal.classList.add('active');
-            }
-
-            // ===== QUAN TRỌNG: Mở modal sửa - Hiển thị đúng staffId =====
-            function openEditCustomerModal(id) {
-                const customer = customers.find(c => c.id === id);
-                if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return; }
-                if (isStaff() && customer.staffId !== currentUser.id) {
-                    showToast('Bạn không có quyền sửa khách hàng này!', 'error');
-                    return;
-                }
-                editCustomerId.value = id;
-                customerModalTitle.innerHTML = '<i class="fas fa-user-edit"></i> Sửa khách hàng';
-                customerNameInput.value = customer.name;
-                customerPhoneInput.value = customer.phone;
-                customerAddressInput.value = customer.address;
-                customerNoteInput.value = customer.note || '';
-
-                // ===== QUAN TRỌNG: Set đúng staffId hiện tại =====
-                if (customer.staffId) {
-                    customerStaffId.value = customer.staffId;
-                } else {
-                    customerStaffId.value = '';
-                }
-
-                if (isStaff()) {
-                    customerStaffGroup.style.display = 'none';
-                } else {
-                    customerStaffGroup.style.display = 'block';
-                    renderStaffSelectors();
-                    // Sau khi render lại, set lại giá trị
-                    if (customer.staffId) {
-                        customerStaffId.value = customer.staffId;
-                    }
-                }
-                customerModal.classList.add('active');
-            }
-
-            function closeCustomerModal() {
-                customerModal.classList.remove('active');
-                customerStaffGroup.style.display = 'block';
-            }
-
-            // ===== QUAN TRỌNG: Save customer - Giữ nguyên staffId =====
-            function saveCustomer() {
-                const id = editCustomerId.value;
-                const name = customerNameInput.value.trim();
-                const phone = customerPhoneInput.value.trim();
-                const address = customerAddressInput.value.trim();
-                const note = customerNoteInput.value.trim();
-                // ===== QUAN TRỌNG: Lấy đúng giá trị staffId =====
-                const staffId = customerStaffId.value || null;
-
-                if (!name || !phone || !address) {
-                    showToast('Vui lòng nhập đầy đủ: Tên, SĐT, Địa chỉ!', 'error');
-                    return;
-                }
-
-                if (id) {
-                    updateCustomer(parseInt(id), name, phone, address, note, staffId).then(success => {
-                        if (success) closeCustomerModal();
-                    });
-                } else {
-                    addCustomer(name, phone, address, note, staffId).then(success => {
-                        if (success) closeCustomerModal();
-                    });
-                }
-            }
-
-            function openProductModal() {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được thêm sản phẩm', 'error'); return; }
-                editProductId.value = '';
-                productModalTitle.innerHTML = '<i class="fas fa-box"></i> Thêm sản phẩm';
-                productNameInput.value = '';
-                productNoteInput.value = '';
-                productModal.classList.add('active');
-            }
-
-            function openEditProductModal(id) {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được sửa sản phẩm', 'error'); return; }
-                const product = products.find(p => p.id === id);
-                if (!product) { showToast('Sản phẩm không tồn tại!', 'error'); return; }
-                editProductId.value = id;
-                productModalTitle.innerHTML = '<i class="fas fa-edit"></i> Sửa sản phẩm';
-                productNameInput.value = product.name;
-                productNoteInput.value = product.note || '';
-                productModal.classList.add('active');
-            }
-
-            function closeProductModal() { productModal.classList.remove('active'); }
-
-            function saveProduct() {
-                const id = editProductId.value;
-                const name = productNameInput.value.trim();
-                const note = productNoteInput.value.trim();
-                if (!name) { showToast('Vui lòng nhập tên sản phẩm!', 'error'); return; }
-                if (id) {
-                    updateProduct(parseInt(id), name, note).then(success => {
-                        if (success) closeProductModal();
-                    });
-                } else {
-                    addProduct(name, note).then(success => {
-                        if (success) closeProductModal();
-                    });
-                }
-            }
-
-            function openOrderModal() {
-                if (!currentUser) { showToast('Vui lòng đăng nhập!', 'error'); return; }
-                editOrderId.value = '';
-                orderModalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Thêm đơn hàng';
-                updateDisplayTime();
-                if (window.timeInterval) clearInterval(window.timeInterval);
-                window.timeInterval = setInterval(updateDisplayTime, 1000);
-
-                customerSearchInput.value = '';
-                renderCustomerSelect('');
-                orderCustomerSelect.value = '';
-                orderPhone.value = '';
-                orderAddress.value = '';
-                orderProductSelect.value = '';
-                orderPrice.value = '';
-                orderQuantity.value = '1';
-                orderTracking.value = '';
-                orderStatus.value = 'Chờ xác nhận';
-                orderNoteInput.value = '';
-
                 if (isAdmin()) {
-                    staffSelectorGroup.classList.remove('hidden');
-                    renderStaffSelectors();
+                    staffFilter.classList.remove('hidden');
+                    const currentVal = staffFilter.value;
+                    staffFilter.innerHTML = '<option value="all">📋 Tất cả nhân viên</option>';
+                    getStaffUsers().forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = `👤 ${s.name}`;
+                        staffFilter.appendChild(opt);
+                    });
+                    if (currentVal) staffFilter.value = currentVal;
                 } else {
-                    staffSelectorGroup.classList.add('hidden');
+                    staffFilter.classList.add('hidden');
                 }
-                orderModal.classList.add('active');
             }
 
-            function openEditOrderModal(id) {
-                if (!currentUser) { showToast('Vui lòng đăng nhập!', 'error'); return; }
-                const order = orders.find(o => o.id === id);
-                if (!order) { showToast('Đơn hàng không tồn tại!', 'error'); return; }
-                if (isStaff() && order.staffId !== currentUser.id) {
-                    showToast('Bạn không có quyền xem đơn hàng này!', 'error');
-                    return;
-                }
-                editOrderId.value = id;
-                orderModalTitle.innerHTML = '<i class="fas fa-edit"></i> Sửa đơn hàng';
-                displayDate.textContent = formatDate(order.date);
-                displayTime.textContent = order.time || '--:--';
-                if (window.timeInterval) clearInterval(window.timeInterval);
-
-                customerSearchInput.value = '';
-                renderCustomerSelect('');
-
-                const customer = customers.find(c => c.name === order.name && c.phone === order.phone);
-                if (customer) {
-                    orderCustomerSelect.value = customer.id;
-                    orderPhone.value = customer.phone;
-                    orderAddress.value = customer.address;
-                } else {
-                    orderCustomerSelect.value = '';
-                    orderPhone.value = order.phone;
-                    orderAddress.value = order.address;
-                }
-
-                const productOption = Array.from(orderProductSelect.options).find(opt => opt.value === order.product);
-                if (productOption) {
-                    orderProductSelect.value = order.product;
-                } else {
-                    orderProductSelect.value = '';
-                }
-                orderPrice.value = order.price;
-                orderQuantity.value = order.quantity;
-                orderTracking.value = order.tracking || '';
-                orderStatus.value = order.status || 'Chờ xác nhận';
-                orderNoteInput.value = order.note || '';
-
-                if (isAdmin()) {
-                    staffSelectorGroup.classList.remove('hidden');
-                    renderStaffSelectors();
-                    orderStaffId.value = order.staffId || '';
-                } else {
-                    staffSelectorGroup.classList.add('hidden');
-                    orderNoteInput.disabled = true;
-                    orderNoteInput.style.background = '#f1f5f9';
-                }
-                orderModal.classList.add('active');
-            }
-
-            function closeOrderModal() {
-                if (window.timeInterval) { clearInterval(window.timeInterval);
-                    window.timeInterval = null; }
-                orderModal.classList.remove('active');
-                orderNoteInput.disabled = false;
-                orderNoteInput.style.background = '#fafcff';
-            }
-
-            function saveOrder() {
-                const id = editOrderId.value;
-                const customerId = orderCustomerSelect.value;
-                let customerName = '',
-                    customerPhone = '',
-                    customerAddress = '';
-                if (customerId) {
-                    const customer = customers.find(c => c.id === parseInt(customerId));
-                    if (customer) {
-                        customerName = customer.name;
-                        customerPhone = customer.phone;
-                        customerAddress = customer.address;
-                    }
-                }
-
-                const data = {
-                    name: customerName || orderPhone.value,
-                    phone: customerPhone || orderPhone.value,
-                    address: customerAddress || orderAddress.value,
-                    product: orderProductSelect.value,
-                    quantity: orderQuantity.value,
-                    price: orderPrice.value,
-                    tracking: orderTracking.value,
-                    status: orderStatus.value,
-                    staffId: orderStaffId.value || null,
-                    note: orderNoteInput.value
-                };
-
-                if (!data.name || !data.phone || !data.address || !data.product) {
-                    showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
-                    return;
-                }
-                if (!data.price || parseInt(data.price) <= 0) {
-                    showToast('Vui lòng nhập giá hợp lệ!', 'error');
-                    return;
-                }
+            function renderCustomerSelect(selectedId = '') {
+                orderCustomerSelect.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
+                let cList = [...customers];
                 if (isStaff()) {
-                    data.staffId = currentUser.id;
-                    if (id) {
-                        const existingOrder = orders.find(o => o.id === parseInt(id));
-                        if (existingOrder) {
-                            data.note = existingOrder.note || '';
-                        }
-                    }
+                    cList = cList.filter(c => c.staffId === currentUser.id);
                 }
-
-                if (id) {
-                    updateOrder(parseInt(id), data).then(success => {
-                        if (success) closeOrderModal();
-                    });
-                } else {
-                    addOrder(data).then(success => {
-                        if (success) closeOrderModal();
-                    });
-                }
+                cList.sort((a, b) => a.name.localeCompare(b.name));
+                cList.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.name} (${c.phone})`;
+                    orderCustomerSelect.appendChild(opt);
+                });
+                if (selectedId) orderCustomerSelect.value = selectedId;
             }
 
-            // ========== PASSWORD ==========
-            function openPasswordModal() {
-                currentPassword.value = '';
-                newPassword.value = '';
-                confirmPassword.value = '';
-                passwordStrength.className = 'password-strength';
-                passwordModal.classList.add('active');
-            }
-
-            function closePasswordModal() { passwordModal.classList.remove('active'); }
-
-            async function changePassword() {
-                if (!currentUser) { showToast('Vui lòng đăng nhập trước!', 'error'); return; }
-                const currentPwd = currentPassword.value.trim();
-                const newPwd = newPassword.value.trim();
-                const confirmPwd = confirmPassword.value.trim();
-                if (currentPwd !== currentUser.password) { showToast('Mật khẩu hiện tại không đúng!', 'error'); return; }
-                if (newPwd.length < 6) { showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error'); return; }
-                if (newPwd !== confirmPwd) { showToast('Mật khẩu xác nhận không khớp!', 'error'); return; }
-                if (newPwd === currentPwd) { showToast('Mật khẩu mới phải khác mật khẩu hiện tại!', 'error'); return; }
-
-                const user = users.find(u => u.id === currentUser.id);
-                if (user) {
-                    user.password = newPwd;
-                    currentUser.password = newPwd;
-
-                    scheduleSync();
-                    closePasswordModal();
-                    showToast('Đổi mật khẩu thành công!', 'success');
-                }
-            }
-
-            // ========== EXPORT/IMPORT ==========
-            function exportExcel() {
-                try {
-                    let filtered = [...orders];
-                    if (isStaff()) filtered = filtered.filter(o => o.staffId === currentUser.id);
-                    if (isAdmin()) {
-                        const filterValue = staffFilter.value;
-                        if (filterValue !== 'all') filtered = filtered.filter(o => o.staffId === parseInt(filterValue));
-                    }
-
-                    const excelData = filtered.map(o => ({
-                        'Ngày': o.date,
-                        'Giờ': o.time || '',
-                        'Tên': o.name,
-                        'SĐT': o.phone,
-                        'Địa chỉ': o.address,
-                        'Sản phẩm': o.product,
-                        'SL': o.quantity,
-                        'Giá': o.price,
-                        'Mã vận đơn': o.tracking || '',
-                        'NV phụ trách': getStaffName(o.staffId),
-                        'Trạng thái': o.status,
-                        'Ghi chú': o.note || ''
-                    }));
-
-                    const ws = XLSX.utils.json_to_sheet(excelData);
-                    ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 30 },
-                        { wch: 20 }, { wch: 8 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
-                    ];
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'DonHang');
-                    const fileName = `don_hang_${new Date().toISOString().slice(0,10)}.xlsx`;
-                    XLSX.writeFile(wb, fileName);
-                    showToast(`Đã xuất file Excel: ${fileName}`, 'success');
-                } catch (err) {
-                    showToast('Lỗi xuất Excel: ' + err.message, 'error');
-                }
-            }
-
-            function importExcel(file) {
-                try {
-                    const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        try {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, { type: 'array' });
-                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                            if (!jsonData || jsonData.length === 0) {
-                                showToast('File Excel trống!', 'error');
-                                return;
-                            }
-
-                            let importedCount = 0,
-                                errorCount = 0;
-                            const defaultStaffId = currentUser ? currentUser.id : 1;
-                            const newOrders = [];
-
-                            jsonData.forEach((row) => {
-                                const name = row['Tên'] || row['Name'] || '';
-                                const phone = row['SĐT'] || row['Điện thoại'] || row['Phone'] || '';
-                                const address = row['Địa chỉ'] || row['Address'] || '';
-                                const product = row['Sản phẩm'] || row['Product'] || '';
-                                const quantity = parseInt(row['SL'] || row['Quantity'] || 1);
-                                const price = parseInt(row['Giá'] || row['Price'] || 0);
-                                const tracking = row['Mã vận đơn'] || row['Tracking'] || '';
-                                const staffName = row['NV phụ trách'] || row['Staff'] || '';
-                                const status = row['Trạng thái'] || row['Status'] || 'Chờ xác nhận';
-                                const note = row['Ghi chú'] || row['Note'] || '';
-
-                                if (!name || !phone || !address || !product) { errorCount++; return; }
-
-                                let staffId = defaultStaffId;
-                                if (staffName) {
-                                    const found = users.find(u =>
-                                        u.role === 'staff' && u.name.toLowerCase() === staffName.toLowerCase()
-                                    );
-                                    if (found) staffId = found.id;
-                                }
-
-                                const validStatus = ['Chờ xác nhận', 'Sale xử lý', 'Đang giao hàng', 'Giao thành công',
-                                    'Đã hủy'
-                                ];
-                                const finalStatus = validStatus.includes(status) ? status : 'Chờ xác nhận';
-                                const now = getCurrentDateTime();
-
-                                newOrders.push({
-                                    id: nextOrderId++,
-                                    date: now.date,
-                                    time: now.time,
-                                    name: name.trim(),
-                                    phone: phone.trim(),
-                                    address: address.trim(),
-                                    product: product.trim(),
-                                    quantity: quantity || 1,
-                                    price: price || 0,
-                                    tracking: tracking.trim() || '',
-                                    status: finalStatus,
-                                    staffId: staffId,
-                                    note: note.trim() || ''
-                                });
-                                importedCount++;
-                            });
-
-                            if (importedCount > 0) {
-                                orders.push(...newOrders);
-                                renderOrders();
-                                renderStaffFilter();
-                                renderStaff();
-                                scheduleSync();
-                                showToast(`Đã import ${importedCount} đơn hàng. ${errorCount} dòng bị bỏ qua.`,
-                                    'success');
-                            } else {
-                                showToast('Không có đơn hàng nào được import!', 'error');
-                            }
-                        } catch (err) {
-                            showToast('Lỗi đọc file: ' + err.message, 'error');
-                        }
-                    };
-                    reader.readAsArrayBuffer(file);
-                } catch (err) {
-                    showToast('Lỗi import: ' + err.message, 'error');
-                }
-            }
-
-            // ========== SYNC ==========
-            function syncAll() {
-                if (isNpointConnected) {
-                    pushToNpoint().then(success => {
-                        if (success) showToast('Đồng bộ thành công!', 'success');
-                    });
-                } else {
-                    showToast('Vui lòng kết nối trước!', 'error');
-                }
+            function renderProductSelect(selectedName = '') {
+                orderProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+                products.sort((a, b) => a.name.localeCompare(b.name));
+                products.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.textContent = p.name;
+                    orderProductSelect.appendChild(opt);
+                });
+                if (selectedName) orderProductSelect.value = selectedName;
             }
 
             function renderAll() {
-                if (!isDataLoaded) return;
                 renderStaff();
                 renderStaffFilter();
                 renderStaffCustomerFilter();
-                renderStaffSelectors();
-                renderCustomerSelect('');
-                renderProductSelect();
                 renderCustomers();
                 renderProducts();
                 renderOrders();
+                renderCustomerSelect('');
+                renderProductSelect('');
             }
 
-            // ========== LOGIN/LOGOUT ==========
+            // ========== KHỞI TẠO SỰ KIỆN TOÀN CỤC CHO CÁC HÀM ONCLICK HỦY BỎ STT ==========
+            window.openEditCustomerModal = function(id) {
+                const c = customers.find(item => item.id === id);
+                if (!c) return;
+                customerModalTitle.innerHTML = '<i class="fas fa-edit"></i> Sửa thông tin khách hàng';
+                editCustomerId.value = c.id;
+                customerNameInput.value = c.name;
+                customerPhoneInput.value = c.phone;
+                customerAddressInput.value = c.address;
+                customerNoteInput.value = c.note || '';
+
+                if (isAdmin()) {
+                    customerStaffGroup.classList.remove('hidden');
+                    customerStaffId.value = c.staffId;
+                } else {
+                    customerStaffGroup.classList.add('hidden');
+                }
+
+                customerModal.classList.add('active');
+            };
+
+            window.deleteCustomer = function(id) {
+                const c = customers.find(item => item.id === id);
+                if (!c) return;
+                if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${c.name}"?`)) {
+                    customers = customers.filter(item => item.id !== id);
+                    addToUndo('delete_customer', c, c.name);
+                    scheduleSync();
+                    renderCustomers();
+                    renderStaffCustomerFilter();
+                    renderCustomerSelect('');
+                }
+            };
+
+            window.openEditProductModal = function(id) {
+                if (!isAdmin()) return;
+                const p = products.find(item => item.id === id);
+                if (!p) return;
+                productModalTitle.innerHTML = '<i class="fas fa-edit"></i> Sửa sản phẩm';
+                editProductId.value = p.id;
+                productNameInput.value = p.name;
+                productNoteInput.value = p.note || '';
+                productModal.classList.add('active');
+            };
+
+            window.deleteProduct = function(id) {
+                if (!isAdmin()) return;
+                const p = products.find(item => item.id === id);
+                if (!p) return;
+                if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${p.name}"?`)) {
+                    products = products.filter(item => item.id !== id);
+                    addToUndo('delete_product', p, p.name);
+                    scheduleSync();
+                    renderProducts();
+                    renderProductSelect('');
+                }
+            };
+
+            window.openEditOrderModal = function(id) {
+                const o = orders.find(item => item.id === id);
+                if (!o) return;
+                orderModalTitle.innerHTML = '<i class="fas fa-edit" style="color:#2563eb;"></i> Sửa đơn hàng';
+                editOrderId.value = o.id;
+
+                displayDate.textContent = formatDate(o.date);
+                displayTime.textContent = o.time;
+
+                const c = customers.find(cust => cust.phone === o.phone);
+                renderCustomerSelect(c ? c.id : '');
+
+                orderPhone.value = o.phone;
+                orderAddress.value = o.address;
+                renderProductSelect(o.product);
+                orderQuantity.value = o.quantity;
+                orderPrice.value = o.price;
+                orderTracking.value = o.tracking || '';
+                orderStatus.value = o.status;
+                orderNoteInput.value = o.note || '';
+
+                if (isAdmin()) {
+                    staffSelectorGroup.classList.remove('hidden');
+                    orderStaffId.value = o.staffId;
+                    orderNoteInput.removeAttribute('readonly');
+                    orderNoteInput.style.background = '#fafcff';
+                } else {
+                    staffSelectorGroup.classList.add('hidden');
+                    orderNoteInput.setAttribute('readonly', 'true');
+                    orderNoteInput.style.background = '#f1f5f9';
+                }
+
+                orderModal.classList.add('active');
+            };
+
+            window.deleteOrder = function(id) {
+                if (!isAdmin()) return;
+                const o = orders.find(item => item.id === id);
+                if (!o) return;
+                if (confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
+                    orders = orders.filter(item => item.id !== id);
+                    addToUndo('delete_order', o, `Đơn hàng của ${o.name}`);
+                    scheduleSync();
+                    renderOrders();
+                }
+            };
+
+            window.deleteStaff = function(id) {
+                if (!isAdmin()) return;
+                const s = users.find(item => item.id === id);
+                if (!s) return;
+                if (s.role === 'admin') {
+                    showToast('Không thể xóa tài khoản Admin!', 'error');
+                    return;
+                }
+                if (confirm(`Bạn có chắc chắn muốn xóa nhân viên "${s.name}"?`)) {
+                    users = users.filter(item => item.id !== id);
+                    addToUndo('delete_staff', s, s.name);
+                    scheduleSync();
+                    renderAll();
+                }
+            };
+
+            // ========== ĐĂNG NHẬP / XỬ LÝ AUTH ==========
             function login() {
                 const username = loginUsername.value.trim();
                 const password = loginPassword.value.trim();
-                loginError.textContent = '';
 
                 if (!username || !password) {
-                    loginError.textContent = 'Vui lòng nhập tên đăng nhập và mật khẩu.';
+                    loginError.textContent = 'Vui lòng nhập đầy đủ thông tin!';
                     return;
                 }
 
                 const user = users.find(u => u.username === username && u.password === password);
-                if (!user) {
-                    loginError.textContent = '❌ Sai tên đăng nhập hoặc mật khẩu.';
-                    showToast('Đăng nhập thất bại!', 'error');
-                    return;
-                }
-
-                currentUser = user;
-                loginPage.classList.add('hidden');
-                appContainer.classList.add('active');
-                updateUIForUser(currentUser);
-                renderAll();
-
-                if (isAdmin()) {
-                    adminTools.classList.remove('hidden');
-                    staffFilter.classList.remove('hidden');
-                    document.getElementById('bulkArea').style.display = 'block';
-                    npointConfig.classList.remove('staff-hidden');
-                    document.getElementById('customerFilterArea').style.display = 'flex';
+                if (user) {
+                    currentUser = user;
+                    loginPage.classList.add('hidden');
+                    appContainer.classList.add('active');
+                    updateUIForUser(user);
+                    renderAll();
+                    showToast(`Chào mừng ${user.name} quay trở lại!`, 'success');
                 } else {
-                    adminTools.classList.add('hidden');
-                    staffFilter.classList.add('hidden');
-                    document.getElementById('bulkArea').style.display = 'none';
-                    npointConfig.classList.add('staff-hidden');
-                    document.getElementById('customerFilterArea').style.display = 'flex';
+                    loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không đúng!';
                 }
+            }
 
-                showToast(`Chào mừng ${user.name}!`, 'success');
-
-                const bucketFromUrl = getBucketFromUrl();
-                if (bucketFromUrl) {
-                    npointBucketInput.value = bucketFromUrl;
-                    saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketFromUrl);
-                    connectNpointSilent();
-                } else if (npointBucketId) {
-                    npointBucketInput.value = npointBucketId;
-                    connectNpointSilent();
+            function updateUIForUser(user) {
+                userNameDisplay.textContent = `${user.name} (@${user.username})`;
+                if (user.role === 'admin') {
+                    userRoleText.textContent = 'Quản trị';
+                    roleDisplay.style.background = '#eef2ff';
+                    roleDisplay.style.color = '#1e40af';
+                    adminTools.classList.remove('hidden');
+                    npointConfig.classList.remove('staff-hidden');
+                    document.getElementById('bulkArea').classList.remove('hidden');
+                } else {
+                    userRoleText.textContent = 'Nhân viên';
+                    roleDisplay.style.background = '#f0fdf4';
+                    roleDisplay.style.color = '#166534';
+                    adminTools.classList.add('hidden');
+                    npointConfig.classList.add('staff-hidden');
+                    document.getElementById('bulkArea').classList.add('hidden');
                 }
             }
 
             function logout() {
-                if (syncTimeout) {
-                    clearTimeout(syncTimeout);
-                    syncTimeout = null;
-                }
                 currentUser = null;
-                loginPage.classList.remove('hidden');
-                appContainer.classList.remove('active');
                 loginUsername.value = '';
                 loginPassword.value = '';
                 loginError.textContent = '';
-                showToast('Đã đăng xuất.', 'success');
-                updateSyncStatus('', 'Đã đăng xuất');
-                updateNpointStatus(false, 'Đã đăng xuất');
-                updateLoginSyncStatus('', '');
-                npointConfig.classList.remove('staff-hidden');
+                appContainer.classList.remove('active');
+                loginPage.classList.remove('hidden');
             }
 
-            function updateUIForUser(user) {
-                if (!user) return;
-                if (user.role === 'admin') {
-                    userRoleText.textContent = 'Quản trị viên';
-                    roleDisplay.style.background = '#eef2ff';
-                    roleDisplay.style.color = '#1e40af';
-                    roleDisplay.innerHTML = `<i class="fas fa-user-cog"></i> <span id="userRoleText">Quản trị viên</span>`;
-                } else {
-                    userRoleText.textContent = 'Nhân viên';
-                    roleDisplay.style.background = '#f1f5f9';
-                    roleDisplay.style.color = '#334155';
-                    roleDisplay.innerHTML = `<i class="fas fa-user"></i> <span id="userRoleText">Nhân viên</span>`;
+            // ========== LƯU TRỮ FORM DỮ LIỆU MODAL ==========
+            async function saveCustomer() {
+                const name = customerNameInput.value.trim();
+                const phone = customerPhoneInput.value.trim();
+                const address = customerAddressInput.value.trim();
+                const note = customerNoteInput.value.trim();
+                const id = editCustomerId.value;
+
+                if (!name || !phone || !address) {
+                    showToast('Vui lòng điền đủ các trường bắt buộc (*)', 'error');
+                    return;
                 }
-                userNameDisplay.textContent = user.username + (user.role === 'admin' ? ' (admin)' : '');
-            }
 
-            function updateDisplayTime() {
-                const now = new Date();
-                displayDate.textContent = now.toLocaleDateString('vi-VN');
-                displayTime.textContent = now.toTimeString().slice(0, 5);
-            }
-
-            // ========== SWITCH TAB ==========
-            function switchTab(tabName) {
-                tabBtns.forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.tab === tabName);
-                });
-                Object.keys(tabContents).forEach(key => {
-                    tabContents[key].classList.toggle('active', key === tabName);
-                });
-                if (tabName === 'customers') renderCustomers();
-                if (tabName === 'products') renderProducts();
-                if (tabName === 'orders') renderOrders();
-            }
-
-            // ========== EVENT LISTENERS ==========
-            loginBtn.addEventListener('click', login);
-            document.getElementById('loginForm').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') { e.preventDefault();
-                    login(); }
-            });
-
-            logoutBtn.addEventListener('click', logout);
-            changePasswordBtn.addEventListener('click', openPasswordModal);
-            syncNowBtn.addEventListener('click', syncAll);
-            refreshCloudBtn.addEventListener('click', function() {
-                pullFromNpoint(true);
-            });
-
-            closePasswordModalBtn.addEventListener('click', closePasswordModal);
-            savePasswordBtn.addEventListener('click', changePassword);
-            newPassword.addEventListener('input', function() {
-                const pwd = this.value;
-                if (pwd.length === 0) { passwordStrength.className = 'password-strength'; return; }
-                passwordStrength.className = 'password-strength ' + (pwd.length < 6 ? 'weak' : pwd.length < 10 ? 'medium' :
-                    'strong');
-            });
-            passwordModal.addEventListener('click', function(e) {
-                if (e.target === passwordModal) closePasswordModal();
-            });
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') { closePasswordModal();
-                    closeCustomerModal();
-                    closeProductModal();
-                    closeOrderModal(); }
-                if (e.key === 'Enter') {
-                    if (passwordModal.classList.contains('active')) changePassword();
-                    if (customerModal.classList.contains('active')) saveCustomer();
-                    if (productModal.classList.contains('active')) saveProduct();
-                    if (orderModal.classList.contains('active')) saveOrder();
-                }
-            });
-
-            npointConnectBtn.addEventListener('click', connectNpoint);
-            npointPullBtn.addEventListener('click', function() { pullFromNpoint(true); });
-            npointPushBtn.addEventListener('click', function() {
-                pushToNpoint().then(success => {
-                    if (success) showToast('Đã đẩy dữ liệu lên!', 'success');
-                });
-            });
-
-            openCustomerModalBtn.addEventListener('click', openCustomerModal);
-            closeCustomerModalBtn.addEventListener('click', closeCustomerModal);
-            saveCustomerBtn.addEventListener('click', saveCustomer);
-            customerModal.addEventListener('click', function(e) {
-                if (e.target === customerModal) closeCustomerModal();
-            });
-
-            openProductModalBtn.addEventListener('click', openProductModal);
-            closeProductModalBtn.addEventListener('click', closeProductModal);
-            saveProductBtn.addEventListener('click', saveProduct);
-            productModal.addEventListener('click', function(e) {
-                if (e.target === productModal) closeProductModal();
-            });
-
-            bulkAddBtn.addEventListener('click', bulkAddCustomers);
-
-            staffFilter.addEventListener('change', function() { renderOrders(); });
-
-            staffCustomerFilter.addEventListener('change', function() {
-                staffFilterValue = this.value;
-                renderCustomers();
-            });
-
-            clearCustomerFilter.addEventListener('click', function() {
-                staffCustomerFilter.value = 'all';
-                staffFilterValue = 'all';
-                renderCustomers();
-                showToast('Đã bỏ lọc nhân viên', 'success');
-            });
-
-            addStaffBtn.addEventListener('click', addStaff);
-            newStaffUsername.addEventListener('keypress', e => { if (e.key === 'Enter') addStaff(); });
-            newStaffName.addEventListener('keypress', e => { if (e.key === 'Enter') addStaff(); });
-
-            openOrderModalBtn.addEventListener('click', openOrderModal);
-            closeOrderModalBtn.addEventListener('click', closeOrderModal);
-            saveOrderBtn.addEventListener('click', saveOrder);
-            orderModal.addEventListener('click', function(e) {
-                if (e.target === orderModal) closeOrderModal();
-            });
-
-            exportExcelBtn.addEventListener('click', exportExcel);
-            importExcelBtn.addEventListener('click', function() { importFileInput.click(); });
-            importFileInput.addEventListener('change', function(e) {
-                if (this.files && this.files[0]) {
-                    importExcel(this.files[0]);
-                }
-                this.value = '';
-            });
-
-            // Pagination events
-            pageSizeSelect.addEventListener('change', function() {
-                pageSize = parseInt(this.value);
-                currentPage = 1;
-                renderCustomers();
-            });
-
-            prevPageBtn.addEventListener('click', function() {
-                if (currentPage > 1) { currentPage--;
-                    renderCustomerPage(); }
-            });
-
-            nextPageBtn.addEventListener('click', function() {
-                const totalPages = Math.ceil(filteredCustomers.length / pageSize);
-                if (currentPage < totalPages) { currentPage++;
-                    renderCustomerPage(); }
-            });
-
-            // Tab events
-            tabBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    switchTab(this.dataset.tab);
-                });
-            });
-
-            // Search events
-            let searchTimeout = null;
-            customerSearchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    const searchTerm = this.value;
-                    renderCustomerSelect(searchTerm);
-                    const filtered = customers.filter(c =>
-                        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        c.phone.includes(searchTerm)
-                    );
-                    if (filtered.length === 1 && searchTerm.trim()) {
-                        orderCustomerSelect.value = filtered[0].id;
-                        orderPhone.value = filtered[0].phone;
-                        orderAddress.value = filtered[0].address || '';
+                if (id) {
+                    const c = customers.find(item => item.id === parseInt(id));
+                    if (c) {
+                        c.name = name;
+                        c.phone = phone;
+                        c.address = address;
+                        if (c.note !== note) {
+                            c.note = note;
+                            c.noteTime = getFullDateTime();
+                        }
+                        if (isAdmin()) {
+                            c.staffId = parseInt(customerStaffId.value);
+                        }
+                        showToast('Cập nhật khách hàng thành công!');
                     }
-                }, 300);
-            });
-
-            searchClearBtn.addEventListener('click', function() {
-                customerSearchInput.value = '';
-                renderCustomerSelect('');
-                orderCustomerSelect.value = '';
-                orderPhone.value = '';
-                orderAddress.value = '';
-                this.classList.remove('visible');
-                customerSearchInput.focus();
-            });
-
-            orderCustomerSelect.addEventListener('change', function() {
-                const selected = this.options[this.selectedIndex];
-                if (selected && selected.dataset.phone) {
-                    orderPhone.value = selected.dataset.phone;
-                    orderAddress.value = selected.dataset.address || '';
                 } else {
+                    const newC = {
+                        id: nextCustomerId++,
+                        name,
+                        phone,
+                        address,
+                        note,
+                        noteTime: note ? getFullDateTime() : '',
+                        staffId: isAdmin() ? parseInt(customerStaffId.value) : currentUser.id
+                    };
+                    customers.push(newC);
+                    showToast('Thêm khách hàng thành công!');
+                }
+
+                customerModal.classList.remove('active');
+                await pushToNpoint();
+                renderCustomers();
+                renderStaffCustomerFilter();
+                renderCustomerSelect('');
+            }
+
+            async function saveProduct() {
+                if (!isAdmin()) return;
+                const name = productNameInput.value.trim();
+                const note = productNoteInput.value.trim();
+                const id = editProductId.value;
+
+                if (!name) {
+                    showToast('Vui lòng nhập tên sản phẩm!', 'error');
+                    return;
+                }
+
+                if (id) {
+                    const p = products.find(item => item.id === parseInt(id));
+                    if (p) {
+                        p.name = name;
+                        p.note = note;
+                        showToast('Cập nhật sản phẩm thành công!');
+                    }
+                } else {
+                    const newP = { id: nextProductId++, name, note };
+                    products.push(newP);
+                    showToast('Thêm sản phẩm thành công!');
+                }
+
+                productModal.classList.remove('active');
+                await pushToNpoint();
+                renderProducts();
+                renderProductSelect('');
+            }
+
+            async function saveOrder() {
+                const custId = orderCustomerSelect.value;
+                const productName = orderProductSelect.value;
+                const quantity = parseInt(orderQuantity.value);
+                const price = parseFloat(orderPrice.value.toString().replace(/[^0-9.-]+/g, ""));
+                const tracking = orderTracking.value.trim();
+                const status = orderStatus.value;
+                const note = orderNoteInput.value.trim();
+                const id = editOrderId.value;
+
+                if (!custId || !productName || !quantity || !price) {
+                    showToast('Vui lòng điền đầy đủ các thông tin có dấu (*)', 'error');
+                    return;
+                }
+
+                const cust = customers.find(c => c.id === parseInt(custId));
+                if (!cust) return;
+
+                const timeInfo = getCurrentDateTime();
+
+                if (id) {
+                    const o = orders.find(item => item.id === parseInt(id));
+                    if (o) {
+                        o.name = cust.name;
+                        o.phone = cust.phone;
+                        o.address = cust.address;
+                        o.product = productName;
+                        o.quantity = quantity;
+                        o.price = price;
+                        o.tracking = tracking;
+                        o.status = status;
+                        if (isAdmin()) {
+                            o.staffId = parseInt(orderStaffId.value);
+                            o.note = note;
+                        }
+                        showToast('Cập nhật đơn hàng thành công!');
+                    }
+                } else {
+                    const newO = {
+                        id: nextOrderId++,
+                        date: timeInfo.date,
+                        time: timeInfo.time,
+                        name: cust.name,
+                        phone: cust.phone,
+                        address: cust.address,
+                        product: productName,
+                        quantity,
+                        price,
+                        tracking,
+                        status,
+                        staffId: isAdmin() ? parseInt(orderStaffId.value) : currentUser.id,
+                        note: isAdmin() ? note : ''
+                    };
+                    orders.push(newO);
+                    showToast('Thêm đơn hàng thành công!');
+                }
+
+                orderModal.classList.remove('active');
+                await pushToNpoint();
+                renderOrders();
+            }
+
+            // ========== EXCEL VÀ CÁC CHỨC NĂNG PHỤ TRỢ KHÁC ==========
+            function bulkAddCustomers() {
+                if (!isAdmin()) return;
+                const text = bulkCustomerInput.value.trim();
+                const staffId = parseInt(bulkStaffSelect.value);
+
+                if (!text || !staffId) {
+                    showToast('Vui lòng nhập danh sách và chọn nhân viên!', 'error');
+                    return;
+                }
+
+                const lines = text.split('\n');
+                let count = 0;
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    const parts = line.split('+').map(p => p.trim());
+                    if (parts.length >= 3) {
+                        const name = parts[0];
+                        const phone = parts[1];
+                        const address = parts[2];
+                        const note = parts[3] || '';
+
+                        customers.push({
+                            id: nextCustomerId++,
+                            name,
+                            phone,
+                            address,
+                            note,
+                            noteTime: note ? getFullDateTime() : '',
+                            staffId
+                        });
+                        count++;
+                    }
+                });
+
+                if (count > 0) {
+                    bulkCustomerInput.value = '';
+                    showToast(`Đã phân phối hàng loạt thành công ${count} khách hàng!`);
+                    scheduleSync();
+                    renderCustomers();
+                    renderStaffCustomerFilter();
+                    renderCustomerSelect('');
+                } else {
+                    showToast('Định dạng nhập không hợp lệ!', 'error');
+                }
+            }
+
+            function exportToExcel() {
+                if (!isAdmin()) return;
+                try {
+                    const custData = customers.map(c => ({
+                        'Tên khách hàng': c.name,
+                        'Số điện thoại': c.phone,
+                        'Địa chỉ': c.address,
+                        'Ghi chú': c.note || '',
+                        'Thời gian ghi chú': c.noteTime || '',
+                        'Nhân viên phụ trách': getStaffName(c.staffId)
+                    }));
+
+                    const ordData = orders.map(o => ({
+                        'Ngày tạo': formatDate(o.date),
+                        'Giờ tạo': o.time,
+                        'Tên khách hàng': o.name,
+                        'Số điện thoại': o.phone,
+                        'Địa chỉ': o.address,
+                        'Sản phẩm': o.product,
+                        'Số lượng': o.quantity,
+                        'Đơn giá': o.price,
+                        'Thành tiền': o.price * o.quantity,
+                        'Mã vận đơn': o.tracking || '',
+                        'Trạng thái': o.status,
+                        'Nhân viên phụ trách': getStaffName(o.staffId),
+                        'Ghi chú đơn': o.note || ''
+                    }));
+
+                    const wb = XLSX.utils.book_new();
+                    const wsCust = XLSX.utils.json_to_sheet(custData);
+                    const wsOrd = XLSX.utils.json_to_sheet(ordData);
+
+                    XLSX.utils.book_append_sheet(wb, wsCust, "Khách hàng");
+                    XLSX.utils.book_append_sheet(wb, wsOrd, "Đơn hàng");
+
+                    XLSX.writeFile(wb, `SalesHub_Export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                    showToast('Xuất file Excel thành công!', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showToast('Lỗi xuất dữ liệu Excel!', 'error');
+                }
+            }
+
+            function importFromExcel(e) {
+                if (!isAdmin()) return;
+                const file = e.target.files[0];
+                if (!file) return;
+
+                showLoading('Đang xử lý file...', 'Đang import dữ liệu từ Excel');
+                const reader = new FileReader();
+
+                reader.onload = async function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        let importedCustomersCount = 0;
+
+                        if (workbook.SheetNames.includes("Khách hàng")) {
+                            const sheet = workbook.Sheets["Khách hàng"];
+                            const json = XLSX.utils.sheet_to_json(sheet);
+
+                            json.forEach(row => {
+                                const name = row['Tên khách hàng'];
+                                const phone = row['Số điện thoại'] ? row['Số điện thoại'].toString() : '';
+                                const address = row['Địa chỉ'] || '';
+                                const note = row['Ghi chú'] || '';
+                                const noteTime = row['Thời gian ghi chú'] || '';
+                                const staffName = row['Nhân viên phụ trách'];
+
+                                if (name && phone) {
+                                    let staff = users.find(u => u.name === staffName && u.role === 'staff');
+                                    let staffId = staff ? staff.id : (getStaffUsers()[0]?.id || 2);
+
+                                    if (!customers.some(c => c.phone === phone)) {
+                                        customers.push({
+                                            id: nextCustomerId++,
+                                            name,
+                                            phone,
+                                            address,
+                                            note,
+                                            noteTime,
+                                            staffId
+                                        });
+                                        importedCustomersCount++;
+                                    }
+                                }
+                            });
+                        }
+
+                        hideLoading();
+                        importFileInput.value = '';
+
+                        if (importedCustomersCount > 0) {
+                            showToast(`Import thành công ${importedCustomersCount} khách hàng mới!`);
+                            await pushToNpoint();
+                            renderAll();
+                        } else {
+                            showToast('Không có dữ liệu mới hợp lệ để thêm!', 'info');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        hideLoading();
+                        importFileInput.value = '';
+                        showToast('Lỗi cấu trúc tệp Excel không khớp!', 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            // ===== CÁC SỰ KIỆN KHÁC (TÌM KIẾM, ĐỔI MẬT KHẨU, TABS...) =====
+            function checkPasswordStrength(pwd) {
+                passwordStrength.className = 'password-strength';
+                if (!pwd) return;
+                if (pwd.length < 6) {
+                    passwordStrength.classList.add('weak');
+                } else if (pwd.length < 10) {
+                    passwordStrength.classList.add('medium');
+                } else {
+                    passwordStrength.classList.add('strong');
+                }
+            }
+
+            function handlePasswordChange() {
+                const current = currentPassword.value;
+                const newPwd = newPassword.value;
+                const confirm = confirmPassword.value;
+
+                if (!current || !newPwd || !confirm) {
+                    showToast('Vui lòng nhập đầy đủ các thông tin!', 'error');
+                    return;
+                }
+                if (current !== currentUser.password) {
+                    showToast('Mật khẩu hiện tại không chính xác!', 'error');
+                    return;
+                }
+                if (newPwd.length < 6) {
+                    showToast('Mật khẩu mới phải tối thiểu 6 ký tự!', 'error');
+                    return;
+                }
+                if (newPwd !== confirm) {
+                    showToast('Xác nhận mật khẩu mới không trùng khớp!', 'error');
+                    return;
+                }
+
+                currentUser.password = newPwd;
+                const dbUser = users.find(u => u.id === currentUser.id);
+                if (dbUser) dbUser.password = newPwd;
+
+                passwordModal.classList.remove('active');
+                currentPassword.value = '';
+                newPassword.value = '';
+                confirmPassword.value = '';
+                passwordStrength.className = 'password-strength';
+
+                pushToNpoint();
+                showToast('Thay đổi mật khẩu thành công!', 'success');
+            }
+
+            async function addStaffAccount() {
+                if (!isAdmin()) return;
+                const name = newStaffName.value.trim();
+                const username = newStaffUsername.value.trim().toLowerCase();
+
+                if (!name || !username) {
+                    showToast('Vui lòng điền đủ Tên và Tên đăng nhập!', 'error');
+                    return;
+                }
+
+                if (users.some(u => u.username === username)) {
+                    showToast('Tên đăng nhập này đã có người sử dụng!', 'error');
+                    return;
+                }
+
+                const maxId = Math.max(...users.map(u => u.id)) || 1;
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+                users.push({
+                    id: maxId + 1,
+                    name,
+                    username,
+                    password: '123456',
+                    role: 'staff',
+                    avatar: initials || 'NV'
+                });
+
+                newStaffName.value = '';
+                newStaffUsername.value = '';
+
+                showToast(`Thêm tài khoản nhân viên ${name} thành công!`);
+                await pushToNpoint();
+                renderAll();
+            }
+
+            // ========== KHỞI TẠO BẮT ĐẦU CHẠY HỆ THỐNG ==========
+            async function init() {
+                // Đăng ký sự kiện DOM
+                loginBtn.addEventListener('click', login);
+                logoutBtn.addEventListener('click', logout);
+
+                npointConnectBtn.addEventListener('click', connectNpoint);
+                npointPullBtn.addEventListener('click', () => pullFromNpoint(true));
+                npointPushBtn.addEventListener('click', () => pushToNpoint(0));
+
+                openCustomerModalBtn.addEventListener('click', () => {
+                    customerModalTitle.innerHTML = '<i class="fas fa-user-plus"></i> Thêm khách hàng';
+                    editCustomerId.value = '';
+                    customerNameInput.value = '';
+                    customerPhoneInput.value = '';
+                    customerAddressInput.value = '';
+                    customerNoteInput.value = '';
+                    if (isAdmin()) {
+                        customerStaffGroup.classList.remove('hidden');
+                        customerStaffId.value = getStaffUsers()[0]?.id || '';
+                    } else {
+                        customerStaffGroup.classList.add('hidden');
+                    }
+                    customerModal.classList.add('active');
+                });
+
+                closeCustomerModalBtn.addEventListener('click', () => customerModal.classList.remove('active'));
+                saveCustomerBtn.addEventListener('click', saveCustomer);
+
+                openProductModalBtn.addEventListener('click', () => {
+                    if (!isAdmin()) return;
+                    productModalTitle.innerHTML = '<i class="fas fa-box"></i> Thêm sản phẩm';
+                    editProductId.value = '';
+                    productNameInput.value = '';
+                    productNoteInput.value = '';
+                    productModal.classList.add('active');
+                });
+                closeProductModalBtn.addEventListener('click', () => productModal.classList.remove('active'));
+                saveProductBtn.addEventListener('click', saveProduct);
+
+                openOrderModalBtn.addEventListener('click', () => {
+                    orderModalTitle.innerHTML = '<i class="fas fa-plus-circle" style="color:#2563eb;"></i> Thêm đơn hàng';
+                    editOrderId.value = '';
+                    const timeInfo = getCurrentDateTime();
+                    displayDate.textContent = formatDate(timeInfo.date);
+                    displayTime.textContent = timeInfo.time;
+
+                    renderCustomerSelect('');
                     orderPhone.value = '';
                     orderAddress.value = '';
-                }
-            });
+                    renderProductSelect('');
+                    orderQuantity.value = '1';
+                    orderPrice.value = '';
+                    orderTracking.value = '';
+                    orderStatus.value = 'Chờ xác nhận';
+                    orderNoteInput.value = '';
 
-            // ========== KHỞI ĐỘNG ==========
-            async function init() {
-                loginPage.classList.remove('hidden');
-                appContainer.classList.remove('active');
-                loginUsername.value = '';
-                loginPassword.value = '';
-                loginError.textContent = '';
+                    customerSearchInput.value = '';
+                    searchClearBtn.classList.remove('visible');
+                    searchResultCount.textContent = '';
 
-                const bucketFromUrl = getBucketFromUrl();
-                if (bucketFromUrl) {
-                    npointBucketInput.value = bucketFromUrl;
-                    saveData(STORAGE_KEYS.NPOINT_BUCKET, bucketFromUrl);
-                    npointBucketId = bucketFromUrl;
+                    if (isAdmin()) {
+                        staffSelectorGroup.classList.remove('hidden');
+                        orderStaffId.value = getStaffUsers()[0]?.id || '';
+                        orderNoteInput.removeAttribute('readonly');
+                        orderNoteInput.style.background = '#fafcff';
+                    } else {
+                        staffSelectorGroup.classList.add('hidden');
+                        orderNoteInput.setAttribute('readonly', 'true');
+                        orderNoteInput.style.background = '#f1f5f9';
+                    }
+
+                    orderModal.classList.add('active');
+                });
+                closeOrderModalBtn.addEventListener('click', () => orderModal.classList.remove('active'));
+                saveOrderBtn.addEventListener('click', saveOrder);
+
+                changePasswordBtn.addEventListener('click', () => passwordModal.classList.add('active'));
+                closePasswordModalBtn.addEventListener('click', () => passwordModal.classList.remove('active'));
+                savePasswordBtn.addEventListener('click', handlePasswordChange);
+                newPassword.addEventListener('input', (e) => checkPasswordStrength(e.target.value));
+
+                addStaffBtn.addEventListener('click', addStaffAccount);
+                syncNowBtn.addEventListener('click', () => pullFromNpoint(true));
+                exportExcelBtn.addEventListener('click', exportToExcel);
+                importExcelBtn.addEventListener('click', () => importFileInput.click());
+                importFileInput.addEventListener('change', importFromExcel);
+                refreshCloudBtn.addEventListener('click', () => pullFromNpoint(true));
+
+                // Tabs Switch Logic
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        Object.keys(tabContents).forEach(key => tabContents[key].classList.remove('active'));
+
+                        this.classList.add('active');
+                        const tabKey = this.dataset.tab;
+                        if (tabContents[tabKey]) tabContents[tabKey].classList.add('active');
+                    });
+                });
+
+                // Customer Select Change handler
+                orderCustomerSelect.addEventListener('change', function() {
+                    const cid = parseInt(this.value);
+                    const c = customers.find(item => item.id === cid);
+                    if (c) {
+                        orderPhone.value = c.phone;
+                        orderAddress.value = c.address;
+                    } else {
+                        orderPhone.value = '';
+                        orderAddress.value = '';
+                    }
+                });
+
+                // Filter Actions
+                staffCustomerFilter.addEventListener('change', function() {
+                    staffFilterValue = this.value;
+                    currentPage = 1;
+                    renderCustomers();
+                });
+
+                clearCustomerFilter.addEventListener('click', function() {
+                    staffCustomerFilter.value = 'all';
+                    staffFilterValue = 'all';
+                    currentPage = 1;
+                    renderCustomers();
+                });
+
+                staffFilter.addEventListener('change', renderOrders);
+                bulkAddBtn.addEventListener('click', bulkAddCustomers);
+
+                // Search Customers inside Order Modal
+                customerSearchInput.addEventListener('input', function() {
+                    const query = this.value.trim().toLowerCase();
+                    if (query) {
+                        searchClearBtn.classList.add('visible');
+                        let pool = [...customers];
+                        if (isStaff()) pool = pool.filter(c => c.staffId === currentUser.id);
+
+                        const matches = pool.filter(c => c.name.toLowerCase().includes(query) || c.phone.includes(query));
+                        searchResultCount.textContent = `${matches.length} kết quả`;
+
+                        if (matches.length > 0) {
+                            renderCustomerSelect(matches[0].id.toString());
+                            orderPhone.value = matches[0].phone;
+                            orderAddress.value = matches[0].address;
+                        }
+                    } else {
+                        searchClearBtn.classList.remove('visible');
+                        searchResultCount.textContent = '';
+                        renderCustomerSelect('');
+                        orderPhone.value = '';
+                        orderAddress.value = '';
+                    }
+                });
+
+                searchClearBtn.addEventListener('click', function() {
+                    customerSearchInput.value = '';
+                    this.classList.remove('visible');
+                    searchResultCount.textContent = '';
+                    renderCustomerSelect('');
+                    orderPhone.value = '';
+                    orderAddress.value = '';
+                });
+
+                // Pagination sizes
+                pageSizeSelect.addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    currentPage = 1;
+                    renderCustomers();
+                });
+
+                prevPageBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderCustomerPage();
+                        renderPagination();
+                    }
+                });
+
+                nextPageBtn.addEventListener('click', function() {
+                    const totalPages = Math.ceil(filteredCustomers.length / pageSize) || 1;
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderCustomerPage();
+                        renderPagination();
+                    }
+                });
+
+                // Kết nối dữ liệu đám mây ban đầu
+                const urlBucket = getBucketFromUrl();
+                if (urlBucket) {
+                    npointBucketInput.value = urlBucket;
+                    await connectNpointSilent();
                 } else if (npointBucketId) {
                     npointBucketInput.value = npointBucketId;
-                }
-
-                if (npointBucketId) {
-                    await connectNpoint();
+                    await connectNpointSilent();
                 } else {
-                    showLoading('Đang khởi tạo dữ liệu...', 'Vui lòng đợi');
                     users = DEFAULT_USERS;
                     products = DEFAULT_PRODUCTS;
                     customers = DEFAULT_CUSTOMERS;
@@ -4300,25 +3784,11 @@
                     isDataLoaded = true;
                     lastDataHash = getDataHash();
                     renderAll();
-                    hideLoading();
-                    showToast('Đã tải dữ liệu mặc định. Vui lòng nhập mã kết nối để đồng bộ!', 'success');
+                    updateLoginSyncStatus('synced');
                 }
-
-                console.log('🛒 Hệ thống quản lý bán hàng');
-                console.log('⚡ Đồng bộ khi có thay đổi');
-                console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
-                console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
-                console.log('📝 Ai thao tác sau sẽ là dữ liệu cuối cùng (Last write wins)');
-                console.log('👤 Giữ nguyên nhân viên phụ trách khi sửa thông tin');
             }
 
-            // Khởi động
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
+            document.addEventListener('DOMContentLoaded', init);
         })();
     </script>
 </body>
