@@ -483,6 +483,10 @@
         .bulk-area .btn-bulk-add:hover {
             background: #1d4ed8;
         }
+        .bulk-area .btn-bulk-add:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .bulk-hint {
             font-size: 0.7rem;
             color: #6b7b93;
@@ -1048,6 +1052,9 @@
         .toast.error {
             background: #991b1b;
         }
+        .toast.info {
+            background: #1e40af;
+        }
         .toast i {
             margin-right: 8px;
         }
@@ -1440,6 +1447,46 @@
             color: #2563eb;
             animation: pulse 1.5s infinite;
         }
+
+        /* ===== UNDO TOAST ===== */
+        #undoToast {
+            position: fixed;
+            bottom: 5rem;
+            right: 2rem;
+            background: #1f2937;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 1.2rem;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            max-width: 450px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
         @media (max-width: 768px) {
             .app-container {
                 padding: 1rem;
@@ -1517,6 +1564,14 @@
                 right: 1rem;
                 left: 1rem;
                 min-width: auto;
+            }
+            #undoToast {
+                bottom: 5rem;
+                right: 1rem;
+                left: 1rem;
+                max-width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -1857,6 +1912,7 @@
                     <br /><i class="fas fa-info-circle"></i> Quản trị có thể sửa/xóa tất cả khách hàng
                     <br /><i class="fas fa-clock"></i> Thời gian ghi chú được tự động cập nhật khi nhân viên sửa ghi chú
                     <br /><i class="fas fa-cloud-download-alt"></i> Dữ liệu được đồng bộ từ nPoint mỗi <b>3 giây</b>
+                    <br /><i class="fas fa-undo"></i> Có thể hoàn tác thao tác xóa trong vòng <b>5 giây</b>
                 </div>
             </div>
 
@@ -1917,13 +1973,27 @@
             <br /><i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
             <br /><i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
             <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Lưu trữ hoàn toàn trên nPoint.io, đồng bộ real-time
+            <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
         </div>
+    </div>
+
+    <div id="undoToast">
+        <span style="display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-undo" style="color:#60a5fa;"></i>
+            <span id="undoMessage">Đã xóa <strong>khách hàng</strong></span>
+        </span>
+        <button onclick="undoLastAction()" style="background:#2563eb;color:white;border:none;padding:0.3rem 1rem;border-radius:2rem;cursor:pointer;font-weight:600;font-size:0.8rem;transition:0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+            <i class="fas fa-undo"></i> Hoàn tác
+        </button>
+        <button onclick="dismissUndo()" style="background:none;color:#9ca3af;border:none;cursor:pointer;font-size:1rem;padding:0 0.3rem;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     <script>
         // ============================================================
         //  HỆ THỐNG QUẢN LÝ BÁN HÀNG - NPOINT.IO CLOUD
-        //  Phiên bản hoàn chỉnh với tất cả chức năng
+        //  Phiên bản hoàn hảo với Undo
         // ============================================================
 
         (function() {
@@ -1934,7 +2004,8 @@
                 PULL_INTERVAL: 3000,
                 DEBOUNCE_DELAY: 300,
                 MAX_RETRY: 3,
-                RETRY_DELAY: 1000
+                RETRY_DELAY: 1000,
+                UNDO_DURATION: 5000
             };
 
             // ========== STORAGE KEYS ==========
@@ -2029,6 +2100,10 @@
             let pageSize = 50;
             let staffFilterValue = 'all';
             let filteredCustomers = [];
+
+            // ========== UNDO STACK ==========
+            let undoStack = [];
+            let undoTimeout = null;
 
             // ========== DOM ==========
             const loadingOverlay = document.getElementById('loadingOverlay');
@@ -2230,6 +2305,123 @@
             function hideLoading() {
                 loadingOverlay.classList.remove('active');
             }
+
+            // ========== UNDO FUNCTIONS ==========
+            function addToUndo(action, data, name) {
+                if (undoTimeout) {
+                    clearTimeout(undoTimeout);
+                    undoTimeout = null;
+                }
+
+                undoStack.push({ action, data, name, timestamp: Date.now() });
+                if (undoStack.length > 10) {
+                    undoStack.shift();
+                }
+
+                showUndoButton(action, data, name);
+            }
+
+            function showUndoButton(action, data, name) {
+                const undoToast = document.getElementById('undoToast');
+                const undoMessage = document.getElementById('undoMessage');
+
+                const actionText = action === 'delete_customer' ? 'khách hàng' :
+                    action === 'delete_order' ? 'đơn hàng' :
+                    action === 'delete_product' ? 'sản phẩm' :
+                    action === 'delete_staff' ? 'nhân viên' : 'dữ liệu';
+
+                undoMessage.innerHTML = `Đã xóa <strong>${name || actionText}</strong>`;
+
+                undoToast.style.display = 'flex';
+                undoToast.style.animation = 'slideUp 0.3s ease';
+
+                if (undoTimeout) {
+                    clearTimeout(undoTimeout);
+                }
+                undoTimeout = setTimeout(() => {
+                    dismissUndo();
+                }, CONFIG.UNDO_DURATION);
+            }
+
+            function dismissUndo() {
+                const undoToast = document.getElementById('undoToast');
+                undoToast.style.animation = 'slideDown 0.3s ease forwards';
+                setTimeout(() => {
+                    undoToast.style.display = 'none';
+                }, 300);
+                if (undoTimeout) {
+                    clearTimeout(undoTimeout);
+                    undoTimeout = null;
+                }
+            }
+
+            window.undoLastAction = async function() {
+                if (undoStack.length === 0) return;
+
+                const lastAction = undoStack.pop();
+                const { action, data, name } = lastAction;
+
+                dismissUndo();
+
+                try {
+                    switch (action) {
+                        case 'delete_customer':
+                            if (data && !customers.some(c => c.id === data.id)) {
+                                if (customers.some(c => c.id === data.id)) {
+                                    data.id = nextCustomerId++;
+                                }
+                                customers.push(data);
+                                await pushToNpoint();
+                                renderCustomers();
+                                renderStaffCustomerFilter();
+                                renderCustomerSelect('');
+                                showToast(`✅ Đã hoàn tác xóa khách hàng "${data.name}"`, 'success');
+                            }
+                            break;
+
+                        case 'delete_order':
+                            if (data && !orders.some(o => o.id === data.id)) {
+                                if (orders.some(o => o.id === data.id)) {
+                                    data.id = nextOrderId++;
+                                }
+                                orders.push(data);
+                                await pushToNpoint();
+                                renderOrders();
+                                renderStaffFilter();
+                                renderStaff();
+                                showToast(`✅ Đã hoàn tác xóa đơn hàng của "${data.name}"`, 'success');
+                            }
+                            break;
+
+                        case 'delete_product':
+                            if (data && !products.some(p => p.id === data.id)) {
+                                if (products.some(p => p.id === data.id)) {
+                                    data.id = nextProductId++;
+                                }
+                                products.push(data);
+                                await pushToNpoint();
+                                renderProducts();
+                                showToast(`✅ Đã hoàn tác xóa sản phẩm "${data.name}"`, 'success');
+                            }
+                            break;
+
+                        case 'delete_staff':
+                            if (data && !users.some(u => u.id === data.id)) {
+                                if (users.some(u => u.id === data.id)) {
+                                    data.id = Math.max(...users.map(u => u.id)) + 1;
+                                }
+                                users.push(data);
+                                await pushToNpoint();
+                                renderAll();
+                                showToast(`✅ Đã hoàn tác xóa nhân viên "${data.name}"`, 'success');
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Lỗi hoàn tác:', error);
+                    showToast('❌ Hoàn tác thất bại!', 'error');
+                }
+            };
 
             // ========== NPOINT.IO ==========
             function updateNpointStatus(connected, message) {
@@ -2853,12 +3045,17 @@
             }
 
             async function deleteCustomer(id) {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được xóa khách hàng', 'error'); return; }
+                if (!isAdmin()) {
+                    showToast('Chỉ quản trị mới được xóa khách hàng', 'error');
+                    return;
+                }
+
                 const customer = customers.find(c => c.id === id);
                 if (!customer) return;
-                if (!confirm(`Xóa khách hàng "${customer.name}"?`)) return;
 
-                const oldCustomers = [...customers];
+                // Lưu vào undo stack
+                addToUndo('delete_customer', { ...customer }, customer.name);
+
                 customers = customers.filter(c => c.id !== id);
                 scheduleRender();
 
@@ -2867,49 +3064,120 @@
                     renderCustomers();
                     renderStaffCustomerFilter();
                     renderCustomerSelect('');
-                    showToast(`Đã xóa khách hàng "${customer.name}"`, 'success');
+                    showToast(`🗑️ Đã xóa khách hàng "${customer.name}"`, 'info');
                 } else {
-                    customers = oldCustomers;
+                    customers.push(customer);
+                    undoStack.pop();
                     scheduleRender();
-                    showToast('Xóa thất bại!', 'error');
+                    showToast('❌ Xóa thất bại!', 'error');
                 }
             }
 
             // ========== BULK ADD ==========
             async function bulkAddCustomers() {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được phân phối hàng loạt', 'error'); return; }
+                if (!isAdmin()) {
+                    showToast('Chỉ quản trị mới được phân phối hàng loạt', 'error');
+                    return;
+                }
+
                 const text = bulkCustomerInput.value.trim();
-                if (!text) { showToast('Vui lòng nhập danh sách khách hàng!', 'error'); return; }
+                if (!text) {
+                    showToast('Vui lòng nhập danh sách khách hàng!', 'error');
+                    return;
+                }
 
                 const staffId = parseInt(bulkStaffSelect.value) || null;
                 const lines = text.split('\n').filter(line => line.trim());
+
+                if (lines.length === 0) {
+                    showToast('Không có dòng dữ liệu nào!', 'error');
+                    return;
+                }
+
                 let added = 0,
                     errors = 0;
                 const newCustomers = [];
+                let errorDetails = [];
 
-                lines.forEach(line => {
-                    let parts = line.split('+').map(s => s.trim());
-                    if (parts.length < 3) { errors++; return; }
-                    const name = parts[0],
-                        phone = parts[1],
-                        address = parts[2];
-                    const note = parts.length > 3 ? parts.slice(3).join(' + ') : '';
-                    if (!name || !phone || !address) { errors++; return; }
-                    if (customers.some(c => c.phone === phone)) { errors++; return; }
+                lines.forEach((line, index) => {
+                    const lineNum = index + 1;
+                    let rawLine = line.trim();
+
+                    if (!rawLine) return;
+
+                    // Tách bằng dấu +
+                    let parts = rawLine.split('+').map(s => s.trim());
+
+                    // Nếu không đủ 3 phần, thử dấu ,
+                    if (parts.length < 3) {
+                        parts = rawLine.split(',').map(s => s.trim());
+                    }
+
+                    if (parts.length < 3) {
+                        errors++;
+                        errorDetails.push(`Dòng ${lineNum}: Thiếu thông tin (cần: Tên + SĐT + Địa chỉ)`);
+                        return;
+                    }
+
+                    let name = parts[0] || '';
+                    let phone = parts[1] || '';
+                    let address = parts[2] || '';
+                    let note = parts.length > 3 ? parts.slice(3).join(' - ') : '';
+
+                    // Chuẩn hóa
+                    name = name.replace(/\s+/g, ' ').trim();
+                    phone = phone.replace(/\s+/g, ' ').trim();
+                    address = address.replace(/\s+/g, ' ').trim();
+                    note = note.replace(/\s+/g, ' ').trim();
+
+                    // Lọc số điện thoại
+                    phone = phone.replace(/[^0-9]/g, '');
+
+                    if (!name) {
+                        errors++;
+                        errorDetails.push(`Dòng ${lineNum}: Tên không được để trống`);
+                        return;
+                    }
+
+                    if (!phone || phone.length < 9) {
+                        errors++;
+                        errorDetails.push(`Dòng ${lineNum}: Số điện thoại không hợp lệ (cần ít nhất 9 số)`);
+                        return;
+                    }
+
+                    if (!address) {
+                        errors++;
+                        errorDetails.push(`Dòng ${lineNum}: Địa chỉ không được để trống`);
+                        return;
+                    }
+
+                    if (customers.some(c => c.phone === phone) || newCustomers.some(c => c.phone === phone)) {
+                        errors++;
+                        errorDetails.push(`Dòng ${lineNum}: Số điện thoại ${phone} đã tồn tại`);
+                        return;
+                    }
+
                     newCustomers.push({
                         id: nextCustomerId++,
-                        name,
-                        phone,
-                        address,
+                        name: name,
+                        phone: phone,
+                        address: address,
                         note: note || '',
                         noteTime: note ? getFullDateTime() : '',
-                        staffId
+                        staffId: staffId
                     });
                     added++;
                 });
 
+                if (errorDetails.length > 0) {
+                    console.log('❌ Lỗi import:', errorDetails.join('\n'));
+                    const showErrors = errorDetails.slice(0, 3).join('\n');
+                    const more = errorDetails.length > 3 ? `\n... và ${errorDetails.length - 3} lỗi khác` : '';
+                    showToast(`⚠️ ${errorDetails.length} lỗi:\n${showErrors}${more}`, 'error');
+                }
+
                 if (added === 0) {
-                    showToast('Không có khách hàng nào được thêm!', 'error');
+                    showToast(`Không có khách hàng nào được thêm! ${errors} dòng bị lỗi.`, 'error');
                     return;
                 }
 
@@ -2922,7 +3190,8 @@
                     renderStaffCustomerFilter();
                     renderCustomerSelect('');
                     bulkCustomerInput.value = '';
-                    showToast(`✅ Đã phân phối ${added} khách hàng. ${errors} dòng bị bỏ qua.`, 'success');
+                    const staffName = staffId ? getStaffName(staffId) : 'chưa phân công';
+                    showToast(`✅ Đã phân phối ${added} khách hàng cho ${staffName}. ${errors} dòng bị bỏ qua.`, 'success');
                 } else {
                     customers = customers.slice(0, -newCustomers.length);
                     nextCustomerId -= newCustomers.length;
@@ -3076,23 +3345,28 @@
             }
 
             async function deleteProduct(id) {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được xóa sản phẩm', 'error'); return; }
+                if (!isAdmin()) {
+                    showToast('Chỉ quản trị mới được xóa sản phẩm', 'error');
+                    return;
+                }
+
                 const product = products.find(p => p.id === id);
                 if (!product) return;
-                if (!confirm(`Xóa sản phẩm "${product.name}"?`)) return;
 
-                const oldProducts = [...products];
+                addToUndo('delete_product', { ...product }, product.name);
+
                 products = products.filter(p => p.id !== id);
                 scheduleRender();
 
                 const success = await pushToNpoint();
                 if (success) {
                     renderProducts();
-                    showToast(`Đã xóa sản phẩm "${product.name}"`, 'success');
+                    showToast(`🗑️ Đã xóa sản phẩm "${product.name}"`, 'info');
                 } else {
-                    products = oldProducts;
+                    products.push(product);
+                    undoStack.pop();
                     scheduleRender();
-                    showToast('Xóa thất bại!', 'error');
+                    showToast('❌ Xóa thất bại!', 'error');
                 }
             }
 
@@ -3270,12 +3544,16 @@
             }
 
             async function deleteOrder(id) {
-                if (!isAdmin()) { showToast('Chỉ quản trị mới được xóa đơn hàng', 'error'); return; }
+                if (!isAdmin()) {
+                    showToast('Chỉ quản trị mới được xóa đơn hàng', 'error');
+                    return;
+                }
+
                 const order = orders.find(o => o.id === id);
                 if (!order) return;
-                if (!confirm(`Xóa đơn hàng của "${order.name}"?`)) return;
 
-                const oldOrders = [...orders];
+                addToUndo('delete_order', { ...order }, order.name);
+
                 orders = orders.filter(o => o.id !== id);
                 scheduleRender();
 
@@ -3284,11 +3562,12 @@
                     renderOrders();
                     renderStaffFilter();
                     renderStaff();
-                    showToast(`Đã xóa đơn hàng của "${order.name}"`, 'success');
+                    showToast(`🗑️ Đã xóa đơn hàng của "${order.name}"`, 'info');
                 } else {
-                    orders = oldOrders;
+                    orders.push(order);
+                    undoStack.pop();
                     scheduleRender();
-                    showToast('Xóa thất bại!', 'error');
+                    showToast('❌ Xóa thất bại!', 'error');
                 }
             }
 
@@ -3338,11 +3617,12 @@
 
             async function deleteStaff(id) {
                 if (!isAdmin()) return;
+
                 const staff = users.find(u => u.id === id);
                 if (!staff || staff.role === 'admin') return;
-                if (!confirm(`Xóa nhân viên "${staff.name}"?`)) return;
 
-                const oldUsers = [...users];
+                addToUndo('delete_staff', { ...staff }, staff.name);
+
                 orders.forEach(o => { if (o.staffId === id) o.staffId = 1; });
                 customers.forEach(c => { if (c.staffId === id) c.staffId = 1; });
                 users = users.filter(u => u.id !== id);
@@ -3351,12 +3631,13 @@
                 const success = await pushToNpoint();
                 if (success) {
                     renderAll();
-                    showToast(`Đã xóa nhân viên "${staff.name}"`, 'success');
+                    showToast(`🗑️ Đã xóa nhân viên "${staff.name}"`, 'info');
                     if (currentUser.id === id) logout();
                 } else {
-                    users = oldUsers;
+                    users.push(staff);
+                    undoStack.pop();
                     scheduleRender();
-                    showToast('Xóa thất bại!', 'error');
+                    showToast('❌ Xóa thất bại!', 'error');
                 }
             }
 
@@ -4194,6 +4475,7 @@
                 console.log('⚡ Pull interval:', CONFIG.PULL_INTERVAL / 1000, 'giây');
                 console.log('📁 Bucket ID:', npointBucketId || 'Chưa có');
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
+                console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
             }
 
             // Khởi động
