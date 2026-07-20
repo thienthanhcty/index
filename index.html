@@ -241,10 +241,6 @@
             background: #fee2e2;
             color: #991b1b;
         }
-        .sync-status.live {
-            background: #dbeafe;
-            color: #1e40af;
-        }
         @keyframes pulse {
             0%,
             100% {
@@ -1912,6 +1908,7 @@
                     <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ ngay khi có thay đổi
                     <br /><i class="fas fa-undo"></i> Có thể hoàn tác thao tác xóa trong vòng <b>5 giây</b>
                     <br /><i class="fas fa-shield-alt"></i> <b>Last write wins:</b> Ai thao tác sau sẽ là dữ liệu cuối cùng
+                    <br /><i class="fas fa-user-tag"></i> <b>Giữ nguyên nhân viên phụ trách</b> khi sửa thông tin
                 </div>
             </div>
 
@@ -1974,6 +1971,7 @@
             <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ ngay khi có thay đổi
             <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
             <br /><i class="fas fa-shield-alt"></i> <b>Last write wins:</b> Ai thao tác sau sẽ là dữ liệu cuối cùng
+            <br /><i class="fas fa-user-tag"></i> <b>Giữ nguyên nhân viên phụ trách</b> khi sửa thông tin
         </div>
     </div>
 
@@ -1993,7 +1991,7 @@
     <script>
         // ============================================================
         //  HỆ THỐNG QUẢN LÝ BÁN HÀNG
-        //  Đồng bộ khi có thay đổi - Last write wins
+        //  Giữ nguyên nhân viên phụ trách khi sửa thông tin
         // ============================================================
 
         (function() {
@@ -2004,7 +2002,7 @@
                 MAX_RETRY: 3,
                 RETRY_DELAY: 1000,
                 UNDO_DURATION: 5000,
-                SYNC_DELAY: 500 // Đợi 500ms sau khi thay đổi để push
+                SYNC_DELAY: 500
             };
 
             // ========== STORAGE KEYS ==========
@@ -2085,7 +2083,6 @@
 
             let npointBucketId = loadData(STORAGE_KEYS.NPOINT_BUCKET, '');
             let isNpointConnected = false;
-            let isSyncing = false;
             let isDataLoaded = false;
             let dataVersion = 0;
             let lastDataHash = '';
@@ -2888,7 +2885,7 @@
                 renderCustomerPage();
             }
 
-            // ========== CRUD CUSTOMER ==========
+            // ========== CRUD CUSTOMER - GIỮ NGUYÊN STAFFID ==========
             async function addCustomer(name, phone, address, note, staffId) {
                 if (!name || !phone || !address) {
                     showToast('Vui lòng nhập đầy đủ: Tên, SĐT, Địa chỉ!', 'error');
@@ -2910,18 +2907,16 @@
                 };
                 customers.push(newCustomer);
 
-                // Render ngay (optimistic UI)
                 renderCustomers();
                 renderStaffCustomerFilter();
                 renderCustomerSelect('');
 
-                // Đồng bộ lên cloud
                 scheduleSync();
                 showToast(`Đã thêm khách hàng "${name}"`, 'success');
                 return true;
             }
 
-            // ===== UPDATE CUSTOMER =====
+            // ===== QUAN TRỌNG: UPDATE CUSTOMER - GIỮ NGUYÊN STAFFID =====
             async function updateCustomer(id, name, phone, address, note, staffId) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
@@ -2945,16 +2940,21 @@
                 } else if (noteChanged && customer.note.trim() === '') {
                     customer.noteTime = '';
                 }
-                if (isAdmin()) {
-                    customer.staffId = staffId || null;
+
+                // ===== QUAN TRỌNG: Chỉ cập nhật staffId nếu có giá trị =====
+                // Nếu staffId là null hoặc undefined, giữ nguyên giá trị cũ
+                if (staffId !== null && staffId !== undefined && staffId !== '') {
+                    customer.staffId = parseInt(staffId);
+                }
+                // Nếu là Staff thì luôn giữ nguyên staffId của họ
+                if (isStaff()) {
+                    customer.staffId = currentUser.id;
                 }
 
-                // Render ngay (optimistic UI)
                 renderCustomers();
                 renderStaffCustomerFilter();
                 renderCustomerSelect('');
 
-                // Đồng bộ lên cloud
                 scheduleSync();
                 showToast(`Đã cập nhật khách hàng "${name}"`, 'success');
                 return true;
@@ -2973,12 +2973,10 @@
 
                 customers = customers.filter(c => c.id !== id);
 
-                // Render ngay (optimistic UI)
                 renderCustomers();
                 renderStaffCustomerFilter();
                 renderCustomerSelect('');
 
-                // Đồng bộ lên cloud
                 scheduleSync();
                 showToast(`🗑️ Đã xóa khách hàng "${customer.name}"`, 'info');
             }
@@ -3089,13 +3087,11 @@
 
                 customers.push(...newCustomers);
 
-                // Render ngay (optimistic UI)
                 renderCustomers();
                 renderStaffCustomerFilter();
                 renderCustomerSelect('');
                 bulkCustomerInput.value = '';
 
-                // Đồng bộ lên cloud
                 scheduleSync();
                 const staffName = staffId ? getStaffName(staffId) : 'chưa phân công';
                 showToast(`✅ Đã phân phối ${added} khách hàng cho ${staffName}. ${errors} dòng bị bỏ qua.`, 'success');
@@ -3577,6 +3573,7 @@
                 customerModal.classList.add('active');
             }
 
+            // ===== QUAN TRỌNG: Mở modal sửa - Hiển thị đúng staffId =====
             function openEditCustomerModal(id) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return; }
@@ -3590,12 +3587,23 @@
                 customerPhoneInput.value = customer.phone;
                 customerAddressInput.value = customer.address;
                 customerNoteInput.value = customer.note || '';
-                customerStaffId.value = customer.staffId || '';
+
+                // ===== QUAN TRỌNG: Set đúng staffId hiện tại =====
+                if (customer.staffId) {
+                    customerStaffId.value = customer.staffId;
+                } else {
+                    customerStaffId.value = '';
+                }
+
                 if (isStaff()) {
                     customerStaffGroup.style.display = 'none';
                 } else {
                     customerStaffGroup.style.display = 'block';
                     renderStaffSelectors();
+                    // Sau khi render lại, set lại giá trị
+                    if (customer.staffId) {
+                        customerStaffId.value = customer.staffId;
+                    }
                 }
                 customerModal.classList.add('active');
             }
@@ -3605,12 +3613,14 @@
                 customerStaffGroup.style.display = 'block';
             }
 
+            // ===== QUAN TRỌNG: Save customer - Giữ nguyên staffId =====
             function saveCustomer() {
                 const id = editCustomerId.value;
                 const name = customerNameInput.value.trim();
                 const phone = customerPhoneInput.value.trim();
                 const address = customerAddressInput.value.trim();
                 const note = customerNoteInput.value.trim();
+                // ===== QUAN TRỌNG: Lấy đúng giá trị staffId =====
                 const staffId = customerStaffId.value || null;
 
                 if (!name || !phone || !address) {
@@ -4299,6 +4309,7 @@
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
                 console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
                 console.log('📝 Ai thao tác sau sẽ là dữ liệu cuối cùng (Last write wins)');
+                console.log('👤 Giữ nguyên nhân viên phụ trách khi sửa thông tin');
             }
 
             // Khởi động
