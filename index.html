@@ -1909,8 +1909,9 @@
                     <i class="fas fa-info-circle"></i> Nhân viên có thể sửa thông tin và ghi chú khách hàng được phân công
                     <br /><i class="fas fa-info-circle"></i> Quản trị có thể sửa/xóa tất cả khách hàng
                     <br /><i class="fas fa-clock"></i> Thời gian ghi chú được tự động cập nhật khi nhân viên sửa ghi chú
-                    <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ real-time <b>mỗi 1 giây</b> như Google Sheets
+                    <br /><i class="fas fa-bolt"></i> Dữ liệu được đồng bộ real-time <b>mỗi 1 giây</b>
                     <br /><i class="fas fa-undo"></i> Có thể hoàn tác thao tác xóa trong vòng <b>5 giây</b>
+                    <br /><i class="fas fa-shield-alt"></i> <b>Đảm bảo:</b> Ghi chú không bị mất khi tải dữ liệu mới
                 </div>
             </div>
 
@@ -1970,9 +1971,9 @@
             <br /><i class="fas fa-edit"></i> <b>Quyền sửa:</b> Nhân viên sửa được thông tin khách hàng được phân công
             <br /><i class="fas fa-sticky-note"></i> <b>Ghi chú:</b> Chỉ quản trị mới có quyền chỉnh sửa ghi chú sản phẩm và đơn hàng
             <br /><i class="fas fa-clock"></i> <b>Thời gian ghi chú:</b> Tự động cập nhật khi nhân viên ghi chú khách hàng
-            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ real-time như Google Sheets
+            <br /><i class="fas fa-cloud"></i> <b>Dữ liệu:</b> Đồng bộ real-time
             <br /><i class="fas fa-undo"></i> <b>Hoàn tác:</b> Có thể hoàn tác thao tác xóa trong 5 giây
-            <br /><i class="fas fa-bolt"></i> <b>Real-time:</b> Mọi thay đổi được đồng bộ ngay lập tức
+            <br /><i class="fas fa-shield-alt"></i> <b>Bảo vệ:</b> Không mất dữ liệu khi tải mới
         </div>
     </div>
 
@@ -1991,8 +1992,8 @@
 
     <script>
         // ============================================================
-        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG - REAL-TIME LIKE GOOGLE SHEETS
-        //  Đồng bộ mỗi 1 giây - Người này sửa người kia thấy ngay
+        //  HỆ THỐNG QUẢN LÝ BÁN HÀNG - REAL-TIME
+        //  Bảo vệ dữ liệu - Không mất ghi chú khi tải mới
         // ============================================================
 
         (function() {
@@ -2000,7 +2001,7 @@
 
             // ========== CẤU HÌNH ==========
             const CONFIG = {
-                PULL_INTERVAL: 1000, // 1 giây - real-time như Google Sheets
+                PULL_INTERVAL: 1000,
                 DEBOUNCE_DELAY: 200,
                 MAX_RETRY: 3,
                 RETRY_DELAY: 1000,
@@ -2092,6 +2093,10 @@
             let isDataLoaded = false;
             let dataVersion = 0;
             let lastDataHash = '';
+
+            // ===== BIẾN BẢO VỆ =====
+            let isUpdating = false; // Đánh dấu đang cập nhật
+            let updateQueue = []; // Hàng đợi cập nhật
 
             let currentPage = 1;
             let pageSize = 50;
@@ -2276,10 +2281,6 @@
                 return JSON.stringify({ users, products, customers, orders });
             }
 
-            function hasDataChanged(newHash) {
-                return newHash !== lastDataHash;
-            }
-
             // ========== TOAST & LOADING ==========
             function showToast(message, type = 'success') {
                 toast.textContent = message;
@@ -2415,7 +2416,7 @@
                 }
             };
 
-            // ========== ĐỒNG BỘ DỮ LIỆU - REAL-TIME ==========
+            // ========== ĐỒNG BỘ DỮ LIỆU ==========
             function updateNpointStatus(connected, message) {
                 if (connected) {
                     npointStatus.className = 'npoint-status connected';
@@ -2540,11 +2541,17 @@
                 }
             }
 
-            // ===== PULL TỪ ĐÁM MÂY =====
+            // ===== PULL TỪ ĐÁM MÂY - CÓ BẢO VỆ =====
             async function pullFromNpoint(showLoadingIndicator = true) {
                 const url = getNpointApiUrl();
                 if (!url) {
                     showToast('Vui lòng kết nối trước!', 'error');
+                    return false;
+                }
+
+                // ===== KIỂM TRA ĐANG CẬP NHẬT =====
+                if (isUpdating) {
+                    showToast('⏳ Đang cập nhật dữ liệu, vui lòng đợi!', 'info');
                     return false;
                 }
 
@@ -2565,6 +2572,7 @@
 
                     if (data && data.users) {
                         const oldCustomers = [...customers];
+                        const oldUsers = [...users];
 
                         users = data.users;
                         products = data.products || products;
@@ -2579,7 +2587,7 @@
                         lastDataHash = getDataHash();
                         isDataLoaded = true;
 
-                        updateSyncStatus('live', '🔄 Đang đồng bộ');
+                        updateSyncStatus('live', '🔄 Đã tải thành công');
                         updateNpointStatus(true, '✅ Đã đồng bộ');
                         updateLoginSyncStatus('live', '🔄 Đang đồng bộ');
 
@@ -2646,9 +2654,15 @@
                 }
             }
 
-            // ===== SILENT PULL - REAL-TIME =====
+            // ===== SILENT PULL - CÓ BẢO VỆ =====
             async function silentPullFromNpoint() {
                 if (!currentUser || !isDataLoaded) return;
+
+                // ===== KHÔNG PULL KHI ĐANG CẬP NHẬT =====
+                if (isUpdating) {
+                    console.log('⏳ Đang cập nhật, bỏ qua pull');
+                    return;
+                }
 
                 const url = getNpointApiUrl();
                 if (!url) return;
@@ -2660,7 +2674,7 @@
                     const data = await response.json();
                     if (!data || !data.users) return;
 
-                    // Kiểm tra thời gian cập nhật
+                    // Kiểm tra thời gian
                     if (data._updatedAt) {
                         const newTime = new Date(data._updatedAt).getTime();
                         const oldTime = parseInt(localStorage.getItem(STORAGE_KEYS.LAST_UPDATE) || '0');
@@ -2677,7 +2691,7 @@
 
                     const oldCustomers = [...customers];
 
-                    // Cập nhật dữ liệu mới
+                    // Cập nhật dữ liệu
                     users = data.users;
                     products = data.products || products;
                     customers = data.customers || customers;
@@ -2709,7 +2723,7 @@
                 }
             }
 
-            // ===== AUTO PULL/PUSH - REAL-TIME 1s =====
+            // ===== AUTO PULL/PUSH =====
             function startAutoPull() {
                 if (pullInterval) { clearInterval(pullInterval);
                     pullInterval = null; }
@@ -2987,7 +3001,7 @@
                 renderCustomerPage();
             }
 
-            // ========== CRUD CUSTOMER ==========
+            // ========== CRUD CUSTOMER - CÓ BẢO VỆ ==========
             async function addCustomer(name, phone, address, note, staffId) {
                 if (!name || !phone || !address) {
                     showToast('Vui lòng nhập đầy đủ: Tên, SĐT, Địa chỉ!', 'error');
@@ -2997,6 +3011,9 @@
                     showToast('Số điện thoại đã tồn tại!', 'error');
                     return false;
                 }
+
+                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
+                isUpdating = true;
 
                 const newCustomer = {
                     id: nextCustomerId++,
@@ -3010,6 +3027,8 @@
                 customers.push(newCustomer);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderCustomers();
                     renderStaffCustomerFilter();
@@ -3024,7 +3043,7 @@
                 }
             }
 
-            // ===== QUAN TRỌNG: UPDATE CUSTOMER - REAL-TIME =====
+            // ===== UPDATE CUSTOMER - CÓ BẢO VỆ =====
             async function updateCustomer(id, name, phone, address, note, staffId) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) { showToast('Khách hàng không tồn tại!', 'error'); return false; }
@@ -3036,6 +3055,9 @@
                     showToast('Số điện thoại đã tồn tại!', 'error');
                     return false;
                 }
+
+                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
+                isUpdating = true;
 
                 const oldData = { ...customer };
                 const noteChanged = note !== customer.note;
@@ -3053,8 +3075,8 @@
                     customer.staffId = staffId || null;
                 }
 
-                // ===== PUSH LÊN CLOUD NGAY LẬP TỨC =====
                 const success = await pushToNpoint();
+                isUpdating = false;
 
                 if (success) {
                     renderCustomers();
@@ -3081,9 +3103,14 @@
 
                 addToUndo('delete_customer', { ...customer }, customer.name);
 
+                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
+                isUpdating = true;
+
                 customers = customers.filter(c => c.id !== id);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderCustomers();
                     renderStaffCustomerFilter();
@@ -3200,9 +3227,14 @@
                     return;
                 }
 
+                // ===== ĐÁNH DẤU ĐANG CẬP NHẬT =====
+                isUpdating = true;
+
                 customers.push(...newCustomers);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderCustomers();
                     renderStaffCustomerFilter();
@@ -3318,10 +3350,14 @@
                     showToast('Tên sản phẩm đã tồn tại!', 'error');
                     return false;
                 }
+
+                isUpdating = true;
                 const newProduct = { id: nextProductId++, name: name.trim(), note: note ? note.trim() : '' };
                 products.push(newProduct);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderProducts();
                     showToast(`Đã thêm sản phẩm "${name}"`, 'success');
@@ -3341,11 +3377,15 @@
                     showToast('Tên sản phẩm đã tồn tại!', 'error');
                     return false;
                 }
+
+                isUpdating = true;
                 const oldData = { ...product };
                 product.name = name.trim();
                 product.note = note ? note.trim() : '';
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderProducts();
                     showToast(`Đã cập nhật sản phẩm "${name}"`, 'success');
@@ -3368,9 +3408,12 @@
 
                 addToUndo('delete_product', { ...product }, product.name);
 
+                isUpdating = true;
                 products = products.filter(p => p.id !== id);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderProducts();
                     showToast(`🗑️ Đã xóa sản phẩm "${product.name}"`, 'info');
@@ -3483,6 +3526,7 @@
                 const now = getCurrentDateTime();
                 const status = data.status || 'Chờ xác nhận';
 
+                isUpdating = true;
                 const newOrder = {
                     id: nextOrderId++,
                     date: now.date,
@@ -3501,6 +3545,8 @@
                 orders.push(newOrder);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderOrders();
                     renderStaffFilter();
@@ -3522,6 +3568,8 @@
                     showToast('Bạn không có quyền sửa đơn hàng này!', 'error');
                     return false;
                 }
+
+                isUpdating = true;
                 const oldData = { ...order };
                 order.name = data.name.trim();
                 order.phone = data.phone.trim();
@@ -3537,6 +3585,8 @@
                 }
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderOrders();
                     renderStaffFilter();
@@ -3561,9 +3611,12 @@
 
                 addToUndo('delete_order', { ...order }, order.name);
 
+                isUpdating = true;
                 orders = orders.filter(o => o.id !== id);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderOrders();
                     renderStaffFilter();
@@ -3628,11 +3681,14 @@
 
                 addToUndo('delete_staff', { ...staff }, staff.name);
 
+                isUpdating = true;
                 orders.forEach(o => { if (o.staffId === id) o.staffId = 1; });
                 customers.forEach(c => { if (c.staffId === id) c.staffId = 1; });
                 users = users.filter(u => u.id !== id);
 
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderAll();
                     showToast(`🗑️ Đã xóa nhân viên "${staff.name}"`, 'info');
@@ -3664,7 +3720,10 @@
                 newStaffName.value = '';
                 newStaffUsername.value = '';
 
+                isUpdating = true;
                 const success = await pushToNpoint();
+                isUpdating = false;
+
                 if (success) {
                     renderAll();
                     showToast(`Đã thêm nhân viên "${name}" với mật khẩu: 123456`, 'success');
@@ -4007,7 +4066,10 @@
                     user.password = newPwd;
                     currentUser.password = newPwd;
 
+                    isUpdating = true;
                     const success = await pushToNpoint();
+                    isUpdating = false;
+
                     if (success) {
                         closePasswordModal();
                         showToast('Đổi mật khẩu thành công!', 'success');
@@ -4125,7 +4187,10 @@
 
                             if (importedCount > 0) {
                                 orders.push(...newOrders);
+                                isUpdating = true;
                                 const success = await pushToNpoint();
+                                isUpdating = false;
+
                                 if (success) {
                                     renderOrders();
                                     renderStaffFilter();
@@ -4475,10 +4540,10 @@
                 }
 
                 console.log('🛒 Hệ thống quản lý bán hàng - Real-time');
-                console.log('⚡ Đồng bộ mỗi 1 giây như Google Sheets');
+                console.log('⚡ Đồng bộ mỗi 1 giây');
                 console.log('🔐 Tài khoản mặc định: admin/123456, nhanvien1/123456 ...');
                 console.log('🔄 Có thể hoàn tác thao tác xóa trong 5 giây');
-                console.log('✏️ Mọi thay đổi được đồng bộ ngay lập tức');
+                console.log('🛡️ Không mất dữ liệu khi tải mới');
             }
 
             // Khởi động
